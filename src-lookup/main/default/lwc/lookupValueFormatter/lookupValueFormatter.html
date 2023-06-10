@@ -1,0 +1,66 @@
+<template>
+  <template lwc:if={isCurrency}>
+    <lightning-formatted-number
+      value={value}
+      currency-code={typeAttributes.currencyCode}
+      currency-display-as={typeAttributes.currencyDisplayAs}
+      format-style="currency"
+      maximum-fraction-digits={typeAttributes.maximumFractionDigits}
+      maximum-significant-digits={typeAttributes.maximumSignificantDigits}
+      minimum-fraction-digits={typeAttributes.minimumFractionDigits}
+      minimum-integer-digits={typeAttributes.minimumIntegerDigits}
+      minimum-significant-digits={typeAttributes.minimumSignificantDigits}
+    ></lightning-formatted-number>
+  </template>
+  <template lwc:elseif={isDate}>
+    <lightning-formatted-date-time
+      day={typeAttributes.day}
+      era={typeAttributes.era}
+      hour={typeAttributes.hour}
+      hour12={typeAttributes.hour12}
+      minute={typeAttributes.minute}
+      month={typeAttributes.month}
+      second={typeAttributes.second}
+      time-zone-name={typeAttributes.timeZoneName}
+      time-zone={typeAttributes.timeZone}
+      value={value}
+      weekday={typeAttributes.weekday}
+      year={typeAttributes.year}
+    ></lightning-formatted-date-time>
+  </template>
+  <template lwc:elseif={isBoolean}>
+    <template lwc:if={value}>
+      <lightning-icon
+        icon-name="utility:check"
+        size="xx-small"
+      ></lightning-icon>
+    </template>
+  </template>
+  <template lwc:elseif={isNumber}>
+    <lightning-formatted-number
+      value={value}
+      minimum-integer-digits={typeAttributes.minimumIntegerDigits}
+      minimum-fraction-digits={typeAttributes.minimumFractionDigits}
+      maximum-fraction-digits={typeAttributes.maximumFractionDigits}
+      minimum-significant-digits={typeAttributes.minimumSignificantDigits}
+      maximum-significant-digits={typeAttributes.maximumSignificantDigit}
+    ></lightning-formatted-number>
+  </template>
+  <template lwc:elseif={isPercent}>
+    <lightning-formatted-number
+      value={value}
+      format-style={typeAttributes.formatStyle}
+      minimum-integer-digits={typeAttributes.minimumIntegerDigits}
+      minimum-fraction-digits={typeAttributes.minimumFractionDigits}
+      maximum-fraction-digits={typeAttributes.maximumFractionDigits}
+      minimum-significant-digits={typeAttributes.minimumSignificantDigits}
+      maximum-significant-digits={typeAttributes.maximumSignificantDigit}
+    ></lightning-formatted-number>
+  </template>
+  <template lwc:else>
+    <lightning-formatted-rich-text
+      value={value}
+      disable-linkify
+    ></lightning-formatted-rich-text>
+  </template>
+</template>

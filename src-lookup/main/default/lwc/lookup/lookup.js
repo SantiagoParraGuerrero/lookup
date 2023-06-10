@@ -168,43 +168,28 @@ export default class Lookup extends LightningElement {
       .replace(REGEX_EXTRA_TRAP, "\\$1");
     const regex = new RegExp(`(${cleanSearchTerm})`, "gi");
     this._searchResults = resultsLocal.map((result) => {
-      // Format title and subtitles
-      if (this._searchTerm.length) {
-        result.titleFormatted = result.title
+
+      result.titleFormatted =
+        this._searchTerm.length && result.title
           ? result.title.replace(regex, MATCHER_REGEX)
           : result.title;
 
-        if (result.subtitles?.length) {
-          result.hasSubtitles = true;
-          result.subtitlesFormatted = result.subtitles.map(
-            (subtitle, index) => {
-              subtitle.index = index;
-              const sub = "" + subtitle.value;
-              subtitle.value = sub && subtitle.highlightSearchTerm
-                  ? sub.replace(regex, MATCHER_REGEX)
-                  : sub;
-              return subtitle;
-            }
-          );
-        }
+      // Format subtitles
 
-        result.subtitleFormatted = result.subtitle
-          ? result.subtitle.replace(regex, MATCHER_REGEX)
-          : result.subtitle;
-      } else {
-        result.titleFormatted = result.title;
-        result.subtitleFormatted = result.subtitle;
+      if (result.subtitles?.length && this._searchTerm.length) {
+        result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
+          subtitle.index = index;
+          const isTextType = !subtitle.type || subtitle.type === 'text';
+          if (isTextType && subtitle.highlightSearchTerm) {
+            const sub = "" + subtitle.value;
+            subtitle.value =
+              subtitle.value
+                ? sub.replace(regex, MATCHER_REGEX)
+                : sub;
+          }
 
-        if (result.subtitles?.length) {
-          result.hasSubtitles = true;
-          result.subtitlesFormatted = result.subtitles.map(
-            (subtitle, index) => {
-              subtitle.index = index;
-              subtitle.value = "" + subtitle.value;
-              return subtitle;
-            }
-          );
-        }
+          return subtitle;
+        });
       }
 
       // Add icon if missing

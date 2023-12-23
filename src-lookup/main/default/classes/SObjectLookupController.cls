@@ -1,16 +1,30 @@
 public with sharing class SObjectLookupController {
 
   @AuraEnabled(cacheable=true)
-  public static Map<String, Object> getFieldInformation(
-    String objectApiName,
-    List<String> fieldApiNames
+  public static String getFieldInformation(
+    String datasets
   ) {
-    objectApiName = Schema.getGlobalDescribe()
-      .get(objectApiName)
-      .getDescribe()
-      .getName();
     try {
-      return FieldUtil.getDescribeByField(objectApiName, new Set<String>(fieldApiNames), true);
+      Map<String, Map<String, Object>> result = new Map<String, Map<String, Object>>();
+      System.debug(datasets);
+      List<DataSet> datasetList = (List<DataSet>) JSON.deserialize(
+        datasets,
+        List<DataSet>.class
+      );
+
+      for (DataSet dataset : datasetList) {
+        String objectApiName = Schema.getGlobalDescribe()
+          .get(dataset.sobjectApiName)
+          .getDescribe()
+          .getName();
+        result.put(
+          dataset.name,
+          FieldUtil.getDescribeByField(objectApiName, new Set<String>(dataset.getFields()), true)
+        );
+      }
+    
+
+      return JSON.serialize(result);
     } catch (Exception e) {
       throw new AuraHandledException(e.getMessage());
     }
@@ -26,19 +40,23 @@ public with sharing class SObjectLookupController {
       List<List<SObject>> result = new List<List<SObject>>();
       Set<Id> resultIds = new Set<Id>();
 
-      List<QueryParameters> listOfParameters = (List<QueryParameters>) JSON.deserialize(
+      if (datasets == null) {
+        return result;
+      }
+
+      List<DataSet> datasetList = (List<DataSet>) JSON.deserialize(
         datasets,
-        List<QueryParameters>.class
+        List<DataSet>.class
       );
 
-      for (QueryParameters parameters : listOfParameters) {
-        Schema.SObjectType objectType = Schema.getGlobalDescribe().get(parameters.sobjectApiName);
+      for (DataSet dataset : datasetList) {
+        Schema.SObjectType objectType = Schema.getGlobalDescribe().get(dataset.sobjectApiName);
         fflib_QueryFactory queryFactory = new fflib_QueryFactory(objectType);
 
-        queryFactory.setLimit(50).selectFields(parameters.queryFields);
+        queryFactory.setLimit(50).selectFields(dataset.getFields());
 
-        applySearchTerm(queryFactory, searchTerm, parameters.searchByFields, objectType);
-        applyWhereClause(queryFactory, parameters.whereClause);
+        applySearchClause(queryFactory, searchTerm, dataset);
+        applyWhereClause(queryFactory, dataset.whereClause);
         applySelectedIds(queryFactory, selectedIds);
 
         List<SObject> singleResult = new List<SObject>();
@@ -68,23 +86,26 @@ public with sharing class SObjectLookupController {
 
     try {
       List<List<SObject>> result = new List<List<SObject>>();
+      if (datasets == null) {
+        return result;
+      }
       Set<Id> resultIds = new Set<Id>();
 
-      List<QueryParameters> listOfParameters = (List<QueryParameters>) JSON.deserialize(
+      List<DataSet> datasetList = (List<DataSet>) JSON.deserialize(
         datasets,
-        List<QueryParameters>.class
+        List<DataSet>.class
       );
 
-      for (QueryParameters parameters : listOfParameters) {
+      for (DataSet dataset : datasetList) {
         queryFactory = new fflib_QueryFactory(
-          Schema.getGlobalDescribe().get(parameters.sobjectApiName)
+          Schema.getGlobalDescribe().get(dataset.sobjectApiName)
         );
 
         queryFactory
           .setCondition('Id IN :initialSelection')
-          .selectFields(parameters.queryFields);
+          .selectFields(dataset.getFields());
 
-        applyWhereClause(queryFactory, parameters.whereClause);
+        applyWhereClause(queryFactory, dataset.whereClause);
 
         List<SObject> singleResult = new List<SObject>();
 
@@ -108,26 +129,33 @@ public with sharing class SObjectLookupController {
 
   @AuraEnabled(cacheable=true)
   public static List<List<SObject>> getRecentlyViewed(String datasets) {
+
+    
     fflib_QueryFactory queryFactory;
 
     try {
       List<List<SObject>> result = new List<List<SObject>>();
+
+      if (datasets == null) {
+        return result;
+      }
+
       Set<Id> resultIds = new Set<Id>();
 
-      List<QueryParameters> parameters = (List<QueryParameters>) JSON.deserialize(
+      List<DataSet> dataset = (List<DataSet>) JSON.deserialize(
         datasets,
-        List<QueryParameters>.class
+        List<DataSet>.class
       );
-      List<Id> recentIds = getRecentlyViewedRecords(parameters);
+      List<Id> recentIds = getRecentlyViewedRecords(dataset);
 
-      for (QueryParameters param : parameters) {
+      for (DataSet param : dataset) {
         queryFactory = new fflib_QueryFactory(
           Schema.getGlobalDescribe().get(param.sobjectApiName)
         );
 
         queryFactory
           .setLimit(50)
-          .selectFields(param.queryFields)
+          .selectFields(param.getFields())
           .setCondition('Id IN (\'' + String.join(recentIds, '\',\'') + '\')');
 
         applyWhereClause(queryFactory, param.whereClause);
@@ -181,39 +209,26 @@ public with sharing class SObjectLookupController {
     }
   }
 
-  private static void applySearchTerm(
+  private static void applySearchClause(
     fflib_QueryFactory queryFactory,
     String searchTerm,
-    List<String> searchByFields,
-    Schema.SObjectType sObjectType
+    Dataset dataset
   ) {
-    if (String.isNotBlank(searchTerm)) {
-      Set<String> conditions = new Set<String>();
-
-      for (String field : searchByFields) {
-        Schema.DescribeFieldResult fieldDescribe = sObjectType
-          .getDescribe()
-          .fields
-          .getMap()
-          .get(field)
-          .getDescribe();
-        if (fieldDescribe.isFilterable()) {
-          conditions.add(field + ' LIKE \'%' + searchTerm + '%\'');
-        }
-      }
-
-      queryFactory.setCondition(
-        String.join(new List<String>(conditions), ' OR ')
-      );
+    String searchTermInput = String.escapeSingleQuotes(searchTerm);
+    if (String.isNotBlank(searchTerm) && String.isNotBlank(dataset.searchClause)) {
+      System.debug(dataset.searchClause);
+      
+      String searchClause = dataset.searchClause.replaceAll('\\{searchTerm\\}', searchTermInput);
+      queryFactory.setCondition(searchClause);
     }
   }
 
   private static List<Id> getRecentlyViewedRecords(
-    List<QueryParameters> parameters
+    List<DataSet> dataset
   ) {
     Set<String> objectApiNames = new Set<String>();
 
-    for (QueryParameters param : parameters) {
+    for (DataSet param : dataset) {
       objectApiNames.add(param.sobjectApiName);
     }
 
@@ -231,12 +246,26 @@ public with sharing class SObjectLookupController {
     return new List<Id>(result);
   }
 
-  private class QueryParameters {
-    public Integer limitOfRecords;
-    public List<String> queryFields = new List<String>();
-    public List<String> searchByFields = new List<String>();
+  private class DataSet {
+    public String name;
+    public List<Field> fields = new List<Field>();
     public String sobjectApiName;
     public String whereClause;
+    public String searchClause;
+
+    private Set<String> getFields() {
+      Set<String> result = new Set<String>();
+
+      for (Field field : this.fields) {
+        result.add(field.name);
+      }
+
+      return result;
+    }
+  }
+
+  private class Field {
+    public String name;
   }
 
   private class LookupControllerException extends Exception {

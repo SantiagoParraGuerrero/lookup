@@ -10,7 +10,7 @@ export default class LookupValueFormatter extends LightningElement {
   }
 
   get isPercent() {
-    return this.type === "currency";
+    return this.type === "percent";
   }
 
   get isBoolean() {

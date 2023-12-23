@@ -2,10 +2,25 @@ import { clone } from "c/utils";
 import { reduceErrors } from "c/ldsUtils";
 import { flatObjectsInArray } from "c/apexRecordsUtils";
 import { LightningElement, api, wire } from "lwc";
-import getFieldInformation from "@salesforce/apex/CustomDataTableController.getFieldInformation";
+import getFieldInformation from "@salesforce/apex/SObjectLookupController.getFieldInformation";
 import getDatasetRecords from "@salesforce/apex/SObjectLookupController.getDatasetRecords";
 import getRecentlyViewed from "@salesforce/apex/SObjectLookupController.getRecentlyViewed";
 import getInitialSelection from "@salesforce/apex/SObjectLookupController.getInitialSelection";
+
+const TYPE_BY_FIELD_TYPE = {
+  string: { type: "text" },
+  phone: { type: "text" },
+  int: { type: "number" },
+  long: { type: "number" },
+  double: { type: "number" },
+  datetime: { type: "number" },
+  percent: { type: "percent-fixed" },
+  date: { type: "number" },// date-local
+  currency: { type: "currency" },
+  boolean: { type: "percent-fixed" },
+  picklist: { type: "text" },
+  number: { type: "number"  }
+}
 
 export default class SobjectLookup extends LightningElement {
   @api actions;
@@ -19,6 +34,7 @@ export default class SobjectLookup extends LightningElement {
   @api required;
   @api scrollAfterNItems;
   @api variant;
+  @api useRawInput;
 
   _searchResults;
   _initialSelection = [];
@@ -120,9 +136,13 @@ export default class SobjectLookup extends LightningElement {
 
   // gets database data that match set criteria, searchTerm and is not already selected
   handleSearch(event) {
-    const { searchTerm, selectedIds } = event.detail;
+    const { rawSearchTerm, searchTerm, selectedIds } = event.detail;
 
-    getDatasetRecords({ searchTerm, selectedIds, datasets: this.datasets })
+    getDatasetRecords({
+      searchTerm: this.useRawInput ? rawSearchTerm : searchTerm,
+      selectedIds,
+      datasets: this.datasets
+    })
       .then((data) => {
         this._searchResults = this.processSearch(data);
       })
@@ -145,10 +165,10 @@ export default class SobjectLookup extends LightningElement {
         // build the subtitles for each record
         const subtitles = fields
           .filter(({ primary }) => !primary)
-          .map(({ label, name: subtitleName, searchable }) => ({
+          .map(({ label, name: subtitleName, highlightSearchTerm }) => ({
             label,
             value: record[subtitleName],
-            highlightSearchTerm: searchable
+            highlightSearchTerm
           }));
 
         result.push({
@@ -219,41 +239,33 @@ export default class SobjectLookup extends LightningElement {
       const { fields } = set;
 
       // set primary if not defined
-      if (!fields.find(({ searchable }) => searchable)) {
+      let primaryField = fields.find(({ primary }) => primary);
+
+      if (!primaryField) {
         fields[0].primary = true;
+        primaryField = fields[0];
       }
 
-      set.searchByFields = fields
-        .filter(({ searchable, primary }) => searchable || primary)
-        .map(({ name }) => name);
-      set.primaryField = fields.find(({ primary }) => primary);
-      set.fieldApiNames = fields.map(({ name }) => name);
-
-      // eslint-disable-next-line no-await-in-loop
-      const fieldInformation = await getFieldInformation({
-        objectApiName: set.sobjectApiName,
-        fieldApiNames: set.fieldApiNames
-      })
-      .catch((error) => {
-        throw error;
-      });
-
-      console.log(fieldInformation);
-
+      set.primaryField = primaryField;
+      set.fields = fields.map(({ name, label }) => ({ name, label }));
       result.push(set);
+    }
+
+    const fieldInformation = JSON.parse(await getFieldInformation({ datasets: JSON.stringify(result) }));
+
+    for (const set of result) {
+      const setFieldInfo = fieldInformation[set.name];
+      set.fields.forEach(field => {
+        const fieldInfo = setFieldInfo[field.name];
+        if (fieldInfo) {
+          const {type} = TYPE_BY_FIELD_TYPE[fieldInfo.type];
+          field.type = type;
+        }
+      });
     }
 
     this._sets = result;
 
-    this.datasets = JSON.stringify(
-      this._sets.map(
-        ({ sobjectApiName, searchByFields, fieldApiNames, whereClause }) => ({
-          sobjectApiName,
-          queryFields: fieldApiNames,
-          searchByFields,
-          whereClause
-        })
-      )
-    );
+    this.datasets = JSON.stringify(this._sets);
   }
 }

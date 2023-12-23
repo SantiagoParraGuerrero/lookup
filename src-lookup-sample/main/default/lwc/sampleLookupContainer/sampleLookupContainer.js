@@ -40,22 +40,63 @@ export default class SampleLookupContainer extends NavigationMixin(
     const { selectedIds, searchTerm, rawSearchTerm } = event.detail;
     // get the new data you can use selectedIds, searchTerm, rawSearchTerm to filter the new data example:
     // ID NOT IN :selectedIds, (LIKE title Like '%searchTerm%') OR (Sub 2 LIKE '%searchTerm%')
-    this.searchResults = [...Array(10).keys()].map((e) => ({
-      id: "" + e,
-      icon: e < 5 ? ACCOUNT_ICON : OPPORTUNITY_ICON,
-      title: "New data " + e,
-      subtitles: [
-        {
-          label: "Subtitle 1",
-          value: "Sub1 " + e
-        },
-        {
-          label: "Sub 2",
-          value: "Sub2 " + e,
-          highlightSearchTerm: true // hightlight the searchTerm for the subtitle (so that your users know that this field is being used in the search)
-        }
-      ]
-    }));
+    this.searchResults = [
+      {
+        id: 1,
+        icon: ACCOUNT_ICON,
+        title: "New data " + 1,
+        subtitles: [
+          {
+            type: "currency",
+            label: "Subtitle 1",
+            value: 12.34,
+            typeAttributes: {
+              currencyDisplayAs: "code",
+              currencyCode: "EUR",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          },
+          {
+            label: "Sub 2",
+            type: "boolean",
+            value: false
+          },
+          {
+            label: "Sub 2",
+            type: "boolean",
+            value: true
+          },
+          {
+            label: "Email subtitle",
+            type: "email",
+            value: "someemail@gmail.com"
+          }
+        ]
+      },
+      {
+        id: 2,
+        icon: ACCOUNT_ICON,
+        title: "New data " + 2,
+        subtitles: [
+          {
+            type: "currency",
+            label: "Subtitle 2",
+            value: 12.34,
+            typeAttributes: {
+              currencyCode: "USD",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }
+          },
+          {
+            label: "Sub 2",
+            value: "Sub2 " + 1,
+            highlightSearchTerm: true
+          }
+        ]
+      }
+    ];
   }
 
   // eslint-disable-next-line no-unused-vars

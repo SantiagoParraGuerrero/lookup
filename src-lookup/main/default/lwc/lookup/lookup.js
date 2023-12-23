@@ -176,11 +176,12 @@ export default class Lookup extends LightningElement {
 
       // Format subtitles
 
-      if (result.subtitles?.length && this._searchTerm.length) {
+      if (result.subtitles?.length) {
+        result.hasSubtitles = true;
         result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
           subtitle.index = index;
           const isTextType = !subtitle.type || subtitle.type === 'text';
-          if (isTextType && subtitle.highlightSearchTerm) {
+          if (isTextType && subtitle.highlightSearchTerm && this._searchTerm.length) {
             const sub = "" + subtitle.value;
             subtitle.value =
               subtitle.value

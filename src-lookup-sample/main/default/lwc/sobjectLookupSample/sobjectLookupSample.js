@@ -22,33 +22,36 @@ export default class SobjectLookupSample extends NavigationMixin(
       sobjectApiName: "Account",
       icon: "standard:account",
       fields: [
-        { label: "Name", name: "Name", primary: true },
+        { label: "Name", name: "Name" },
         { label: "Phone", name: "Phone" },
-        { label: "Owner", name: "Owner.Name", searchable: true }
+        { label: "Owner", name: "Owner.Name", highlightSearchTerm: true }
       ],
-      whereClause: "Type != 'Customer - Direct'"
+      whereClause: "Type != 'Customer - Direct'",
+      searchClause: `Owner.Name LIKE '%{searchTerm}%' OR Phone LIKE '%{searchTerm}%'`
     },
     {
       name: 'Customer - Channel Accounts',
       sobjectApiName: "Account",
       icon: "standard:sales_channel",
       fields: [
-        { label: "Name", name: "Name", primary: true },
-        { label: "Employees", name: "NumberOfEmployees", searchable: true },
-        { label: "Industry", name: "Industry", searchable: true },
+        { label: "Name", name: "Name" },
+        { label: "Employees", name: "NumberOfEmployees", highlightSearchTerm: false },
+        { label: "Industry", name: "Industry", highlightSearchTerm: true },
       ],
-      whereClause: "Type != 'Customer - Channel'"
+      whereClause: "Type != 'Customer - Channel'",
+      searchClause: `Industry LIKE '%{searchTerm}%' OR REPLACE(NumberOfEmployees, ' ', '') = {searchTerm}`
     },
     {
       name: 'Opportunities',
       sobjectApiName: "Opportunity",
       icon: "standard:opportunity",
       fields: [
-        { label: "Name", name: "Name", primary: true },
-        { label: "StageName", name: "StageName", searchable: true },
+        { label: "Name", name: "Name" },
+        { label: "StageName", name: "StageName", highlightSearchTerm: true },
         { label: "Owner", name: "Owner.Name" }
       ],
-      whereClause: "StageName != NULL"
+      whereClause: "StageName != NULL",
+      searchClause: `Name LIKE '%{searchTerm}%' OR StageName LIKE '%{searchTerm}%'`
     }
   ];
 

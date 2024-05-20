@@ -1,8 +1,8 @@
 import { LightningElement } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { NavigationMixin } from "lightning/navigation";
-const ACCOUNT_ICON = "standard:account";
-const OPPORTUNITY_ICON = "standard:opportunity";
+const ACCOUNT_ICON = { iconName: "standard:account" };
+const OPPORTUNITY_ICON = { iconName: "standard:opportunity" };
 
 export default class SampleLookupContainer extends NavigationMixin(
   LightningElement
@@ -31,8 +31,8 @@ export default class SampleLookupContainer extends NavigationMixin(
   }));
 
   actions = [
-    { name: "actionA", label: "Custom Action" },
-    { name: "actionB", label: "Custom Action B" }
+    { name: "actionA", label: "Custom Action" , icon: { iconName: 'utility:add' } },
+    { name: "actionB", label: "Custom Action B" , icon: { iconName: 'utility:add' } }
   ];
 
   handleSearch(event) {
@@ -47,31 +47,21 @@ export default class SampleLookupContainer extends NavigationMixin(
         title: "New data " + 1,
         subtitles: [
           {
-            type: "currency",
+            type: "lightning-formatted-number",
             label: "Subtitle 1",
             value: 12.34,
             typeAttributes: {
-              currencyDisplayAs: "code",
-              currencyCode: "EUR",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
+              formatStyle: "currency"
             }
           },
           {
             label: "Sub 2",
-            type: "boolean",
-            value: false
+            type: "lightning-icon",
+            value: true,
+            typeAttributes: {
+              iconName: "utility:activity"
+            }
           },
-          {
-            label: "Sub 2",
-            type: "boolean",
-            value: true
-          },
-          {
-            label: "Email subtitle",
-            type: "email",
-            value: "someemail@gmail.com"
-          }
         ]
       },
       {
@@ -80,13 +70,14 @@ export default class SampleLookupContainer extends NavigationMixin(
         title: "New data " + 2,
         subtitles: [
           {
-            type: "currency",
+            type: "lightning-formatted-date-time",
             label: "Subtitle 2",
-            value: 12.34,
+            value: 1547250828000,
             typeAttributes: {
-              currencyCode: "USD",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
+              year: "2-digit",
+              month: "short",
+              day: "2-digit",
+              weekday: "narrow"
             }
           },
           {

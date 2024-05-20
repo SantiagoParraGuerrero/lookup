@@ -5,23 +5,27 @@ export default class LookupValueFormatter extends LightningElement {
   @api value;
   @api type;
 
-  get isCurrency() {
-    return this.type === "currency";
+  get isLightningFormattedNumber() {
+    return this.type === "lightning-formatted-number";
   }
 
-  get isPercent() {
-    return this.type === "percent";
+  get isLightningFormattedDateTime() {
+    return this.type === "lightning-formatted-date-time";
   }
 
-  get isBoolean() {
-    return this.type === "boolean";
+  get isLightningIcon() {
+    return this.type === "lightning-icon";
   }
 
-  get isDate() {
-    return this.type === "date";
+  get isLightningFormattedRichText() {
+    return this.type === "lightning-formatted-rich-text";
   }
 
-  get isNumber() {
-    return this.type === "number";
+  get isLightningFormattedText() {
+    return this.type === "lightning-formatted-text";
+  }
+                                                                                                                                                                  
+  get isLightningFormattedEmail() {
+    return this.type === "lightning-formatted-email";
   }
 }

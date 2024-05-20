@@ -16,6 +16,8 @@ const REGEX_SOSL_RESERVED =
   /(\?|&|\||!|\{|\}|\[|\]|\(|\)|\^|~|\*|:|"|\+|-|\\)/g;
 const REGEX_EXTRA_TRAP = /(\$|\\)/g;
 
+const TEXT_TYPES = ['lightning-formatted-rich-text', 'lightning-formatted-text'];
+
 export default class Lookup extends LightningElement {
   // Public properties
   @api disabled = false;
@@ -31,7 +33,6 @@ export default class Lookup extends LightningElement {
   // Template properties
   loading = false;
   searchResultsLocalState = [];
-  _actions = [];
   _helpMessage;
 
   // Private properties
@@ -59,21 +60,7 @@ export default class Lookup extends LightningElement {
     this.updateClassList();
   }
 
-  @api
-  get actions() {
-    return this._actions;
-  }
-
-  set actions(value) {
-    if (Array.isArray(value)) {
-      this._actions = JSON.parse(JSON.stringify(value)).map((singleValue) => {
-        if (!singleValue.icon) {
-          singleValue.icon = "utility:add";
-        }
-        return singleValue;
-      });
-    }
-  }
+  @api actions = [];
 
   @api
   get value() {
@@ -180,7 +167,7 @@ export default class Lookup extends LightningElement {
         result.hasSubtitles = true;
         result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
           subtitle.index = index;
-          const isTextType = !subtitle.type || subtitle.type === 'text';
+          const isTextType = !subtitle.type || TEXT_TYPES.includes(subtitle.type);
           if (isTextType && subtitle.highlightSearchTerm && this._searchTerm.length) {
             const sub = "" + subtitle.value;
             subtitle.value =
@@ -192,9 +179,6 @@ export default class Lookup extends LightningElement {
           return subtitle;
         });
       }
-
-      // Add icon if missing
-      result.icon = result.icon || "standard:default";
 
       return result;
     });
@@ -436,7 +420,7 @@ export default class Lookup extends LightningElement {
     }, 0);
   }
 
-  handleNewRecordClick(event) {
+  handleActionClick(event) {
     const actionName = event.currentTarget.dataset.name;
     this.dispatchEvent(new CustomEvent("action", { detail: actionName }));
   }
@@ -454,7 +438,7 @@ export default class Lookup extends LightningElement {
     return (
       this._hasFocus &&
       this.isSelectionAllowed() &&
-      (isSearchTermValid || this.hasResults || this._actions?.length)
+      (isSearchTermValid || this.hasResults || this.actions?.length)
     );
   }
 
@@ -520,8 +504,8 @@ export default class Lookup extends LightningElement {
   }
 
   get getSelectIconName() {
-    return this.hasSelection()
-      ? this._curSelection[0].icon
+    return this.hasSelection() && this._curSelection[0].icon?.iconName
+      ? this._curSelection[0].icon.iconName
       : "standard:default";
   }
 

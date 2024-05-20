@@ -18,15 +18,13 @@
       >
         <!-- Search input start -->
         <div class={getComboboxClass} role="none">
-          <template lwc:if={isSingleEntry}>
-            <lightning-icon
-              icon-name={getSelectIconName}
-              size="small"
-              alternative-text="Selected item icon"
-              class={getSelectIconClass}
-            >
-            </lightning-icon>
-          </template>
+          <lightning-icon
+            lwc:if={isSingleEntry}
+            icon-name={getSelectIconName}
+            size="small"
+            class={getSelectIconClass}
+          >
+          </lightning-icon>
 
           <!-- Text input -->
           <input
@@ -117,9 +115,9 @@
                 >
                   <span class="slds-media__figure slds-listbox__option-icon">
                     <lightning-icon
-                      icon-name={item.result.icon}
                       size="small"
-                      alternative-text="Result item icon"
+                      icon-name="standard:default"
+                      lwc:spread={item.result.icon}
                     ></lightning-icon>
                   </span>
                   <span class="slds-media__body">
@@ -136,7 +134,7 @@
                       for:item="subtitle"
                       lwc:if={item.result.hasSubtitles}
                     >
-                      <span
+                      <p
                         lwc:if={subtitle.value}
                         key={subtitle.index}
                         class="slds-listbox__option-meta slds-listbox__option-meta_entity"
@@ -151,7 +149,7 @@
                           type={subtitle.type}
                           value={subtitle.value}
                         ></c-lookup-value-formatter>
-                      </span>
+                      </p>
                     </template>
                   </span>
                 </div>
@@ -176,7 +174,7 @@
             <!-- No results end -->
 
             <!-- Create new records -->
-            <template for:each={_actions} for:item="action">
+            <template for:each={actions} for:item="action">
               <li
                 key={action.name}
                 role="presentation"
@@ -184,15 +182,15 @@
               >
                 <div
                   class="slds-media slds-media_center slds-listbox__option slds-listbox__option_entity"
-                  onclick={handleNewRecordClick}
+                  onclick={handleActionClick}
                   data-name={action.name}
                   role="option"
                 >
                   <span class="slds-media__figure slds-listbox__option-icon">
                     <lightning-icon
-                      icon-name={action.icon}
                       size="small"
-                      alternative-text={action.label}
+                      icon-name= "utility:add"
+                      lwc:spread={action.icon}
                     ></lightning-icon>
                   </span>
                   <span class="slds-media__body">
@@ -231,7 +229,7 @@
                 onremove={handleRemoveSelectedItem}
                 name={item.id}
               >
-                <lightning-icon icon-name={item.icon}></lightning-icon>
+                <lightning-icon lwc:spread={item.icon}></lightning-icon>
               </lightning-pill>
             </li>
           </template>

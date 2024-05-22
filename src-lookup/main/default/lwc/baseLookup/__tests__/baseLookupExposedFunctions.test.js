@@ -3,9 +3,9 @@ const {
   inputSearchTerm,
   flushPromises,
   SAMPLE_SEARCH_ITEMS
-} = require("./lookupTest.utils");
+} = require("./baseLookupTest.utils");
 
-describe("c-lookup exposed functions", () => {
+describe("c-base-lookup exposed functions", () => {
   afterEach(() => {
     // The jsdom instance is shared across test cases in a single file so reset the DOM
     while (document.body.firstChild) {

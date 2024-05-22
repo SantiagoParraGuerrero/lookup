@@ -14,7 +14,7 @@ export const flushPromises = async () => {
  * @returns the lookup element
  */
 export const createLookupElement = (props = {}) => {
-  const lookupEl = createElement("c-lookup", {
+  const lookupEl = createElement("c-base-lookup", {
     is: Lookup
   });
   lookupEl.label = "Label"; // Assign a default label to pass a11y tests

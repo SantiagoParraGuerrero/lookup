@@ -2,14 +2,14 @@ const {
   createLookupElement,
   inputSearchTerm,
   SAMPLE_SEARCH_ITEMS
-} = require("./lookupTest.utils");
+} = require("./baseLookupTest.utils");
 
 const SAMPLE_SEARCH_TOO_SHORT_WHITESPACE = "A ";
 const SAMPLE_SEARCH_TOO_SHORT_SPECIAL = "a*";
 const SAMPLE_SEARCH_RAW = "Sample search* ";
 const SAMPLE_SEARCH_CLEAN = "sample search?";
 
-describe("c-lookup event fires", () => {
+describe("c-base-lookup event fires", () => {
   afterEach(() => {
     // The jsdom instance is shared across test cases in a single file so reset the DOM
     while (document.body.firstChild) {

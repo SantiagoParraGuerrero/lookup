@@ -3,9 +3,9 @@ const {
   flushPromises,
   SAMPLE_SEARCH_ITEMS,
   LABEL_NO_RESULTS
-} = require("./lookupTest.utils");
+} = require("./baseLookupTest.utils");
 
-describe("c-lookup rendering", () => {
+describe("c-base-lookup rendering", () => {
   afterEach(() => {
     // The jsdom instance is shared across test cases in a single file so reset the DOM
     while (document.body.firstChild) {

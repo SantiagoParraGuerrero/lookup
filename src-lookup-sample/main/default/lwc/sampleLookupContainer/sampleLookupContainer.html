@@ -1,5 +1,5 @@
 <template>
-  <lightning-card title="c-lookup (Base Lookup Lightning Web Component)">
+  <lightning-card title="c-base-lookup (Base Lookup Lightning Web Component)">
     <div class="slds-form slds-form_stacked slds-var-m-around_xx-large">
       <div class="slds-grid slds-gutters">
         <div class="slds-col">
@@ -26,7 +26,7 @@
         <strong>Note:</strong> start by typing "New data" in the search box
       </p>
 
-      <c-lookup
+      <c-base-lookup
         actions={actions}
         default-search-results={defaultSearchResults}
         field-level-text="some help text"
@@ -42,7 +42,7 @@
         message-when-value-missing="Complete the field or else!"
         search-results={searchResults}
         value={initialSelection}
-      ></c-lookup>
+      ></c-base-lookup>
 
       <div class="slds-var-m-top_large">
         <lightning-button label="Focus" onclick={handleFocus}></lightning-button

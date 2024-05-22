@@ -3,8 +3,9 @@ public with sharing class SobjectLookupSampleController {
   public static List<String> getInitialSelection() {
     List<Opportunity> opps = [SELECT Id FROM Opportunity];
 
-    List<Account> accounts = [SELECT Id FROM Account];
+    List<Contact> contacts = [SELECT Id FROM Contact WHERE Account.Name = 'Edge Communications'];
 
-    return new List<String>{ accounts[0].Id, opps[0].Id };
+    // , opps[0].Id 
+    return new List<String>{ contacts[0].Id };
   }
 }

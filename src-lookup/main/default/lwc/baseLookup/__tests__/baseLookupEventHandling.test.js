@@ -2,13 +2,13 @@ const {
   createLookupElement,
   inputSearchTerm,
   SAMPLE_SEARCH_ITEMS
-} = require("./lookupTest.utils");
+} = require("./baseLookupTest.utils");
 
 const SAMPLE_SEARCH = "sample";
 const ARROW_DOWN = 40;
 const ENTER = 13;
 
-describe("c-lookup event handling", () => {
+describe("c-base-lookup event handling", () => {
   afterEach(() => {
     // The jsdom instance is shared across test cases in a single file so reset the DOM
     while (document.body.firstChild) {

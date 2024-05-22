@@ -11,48 +11,10 @@ export default class SobjectLookupSample extends NavigationMixin(
   maxSelectionSize = 2;
   notifyViaAlerts = false;
   value;
+  payload = { accountName: 'Edge Communications' };
   actions = [
     { name: "newAccountAction", label: "New Account" },
     { name: "newOpportunityAction", label: "New Opportunity" }
-  ];
-
-  sets = [
-    {
-      name: 'Customer - Direct Accounts',
-      sobjectApiName: "Account",
-      icon: "standard:account",
-      fields: [
-        { label: "Name", name: "Name" },
-        { label: "Phone", name: "Phone" },
-        { label: "Owner", name: "Owner.Name", highlightSearchTerm: true }
-      ],
-      whereClause: "Type != 'Customer - Direct'",
-      searchClause: `Owner.Name LIKE '%{searchTerm}%' OR Phone LIKE '%{searchTerm}%'`
-    },
-    {
-      name: 'Customer - Channel Accounts',
-      sobjectApiName: "Account",
-      icon: "standard:sales_channel",
-      fields: [
-        { label: "Name", name: "Name" },
-        { label: "Employees", name: "NumberOfEmployees", highlightSearchTerm: false },
-        { label: "Industry", name: "Industry", highlightSearchTerm: true },
-      ],
-      whereClause: "Type != 'Customer - Channel'",
-      searchClause: `Industry LIKE '%{searchTerm}%' OR REPLACE(NumberOfEmployees, ' ', '') = {searchTerm}`
-    },
-    {
-      name: 'Opportunities',
-      sobjectApiName: "Opportunity",
-      icon: "standard:opportunity",
-      fields: [
-        { label: "Name", name: "Name" },
-        { label: "StageName", name: "StageName", highlightSearchTerm: true },
-        { label: "Owner", name: "Owner.Name" }
-      ],
-      whereClause: "StageName != NULL",
-      searchClause: `Name LIKE '%{searchTerm}%' OR StageName LIKE '%{searchTerm}%'`
-    }
   ];
 
   @wire(getInitialSelection)
@@ -138,7 +100,7 @@ export default class SobjectLookupSample extends NavigationMixin(
   }
 
   checkForErrors() {
-    const input = this.template.querySelector("c-sobject-lookup");
+    const input = this.lookupElement;
     const { value } = input;
     // Custom validation rule
     if (this.isMultiEntry && value.length > this.maxSelectionSize) {
@@ -162,6 +124,6 @@ export default class SobjectLookupSample extends NavigationMixin(
   }
 
   get lookupElement() {
-    return this.template.querySelector("c-sobject-lookup");
+    return this.refs.lookup;
   }
 }

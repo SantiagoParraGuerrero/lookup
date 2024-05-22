@@ -28,22 +28,18 @@
         <strong>Note:</strong> new record creation options only work in
         Lightning Experience.
       </p>
-
-      <c-sobject-lookup
+      <c-lookup
+        lwc:ref="lookup"
+        unique-id="Account_Lookup"
         actions={actions}
-        field-level-text="some help text"
         is-multi-entry={isMultiEntry}
         label="SObject Search"
-        min-search-term-length="3"
         onaction={handleAction}
         onchange={handleChange}
-        placeholder="some place holder"
         required
-        message-when-value-missing="Complete the field or else!"
-        scroll-after-n-items="5"
-        sets={sets}
         value={value}
-      ></c-sobject-lookup>
+        payload={payload}
+      ></c-lookup>
 
       <div class="slds-var-m-top_large">
         <lightning-button label="Focus" onclick={handleFocus}></lightning-button

@@ -92,7 +92,7 @@ export default class SampleLookupContainer extends NavigationMixin(
 
   // eslint-disable-next-line no-unused-vars
   handleChange(event) {
-    const input = this.template.querySelector("c-lookup");
+    const input = this.template.querySelector("c-base-lookup");
     const { value } = input;
     // Custom validation rule
     if (this.isMultiEntry && value.length > this.maxSelectionSize) {
@@ -127,7 +127,7 @@ export default class SampleLookupContainer extends NavigationMixin(
   handleSubmit() {
     const allValid = [
       ...this.template.querySelectorAll("lightning-input"),
-      this.template.querySelector("c-lookup")
+      this.template.querySelector("c-base-lookup")
     ].reduce((validSoFar, inputCmp) => {
       inputCmp.reportValidity();
       return validSoFar && inputCmp.checkValidity();
@@ -157,6 +157,6 @@ export default class SampleLookupContainer extends NavigationMixin(
   }
 
   handleFocus() {
-    this.template.querySelector("c-lookup").focus();
+    this.template.querySelector("c-base-lookup").focus();
   }
 }

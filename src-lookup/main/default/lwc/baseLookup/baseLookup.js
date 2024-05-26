@@ -16,15 +16,18 @@ const REGEX_SOSL_RESERVED =
   /(\?|&|\||!|\{|\}|\[|\]|\(|\)|\^|~|\*|:|"|\+|-|\\)/g;
 const REGEX_EXTRA_TRAP = /(\$|\\)/g;
 
-const TEXT_TYPES = ['lightning-formatted-rich-text', 'lightning-formatted-text'];
+const TEXT_TYPES = [
+  "lightning-formatted-rich-text",
+  "lightning-formatted-text"
+];
 
-export default class Lookup extends LightningElement {
+export default class BaseLookup extends LightningElement {
   // Public properties
   @api disabled = false;
   @api fieldLevelText = "";
   @api isMultiEntry = false;
   @api label = "";
-  
+
   @api placeholder = "";
   @api required = false;
   @api scrollAfterNItems = "*";
@@ -168,7 +171,6 @@ export default class Lookup extends LightningElement {
       .replace(REGEX_EXTRA_TRAP, "\\$1");
     const regex = new RegExp(`(${cleanSearchTerm})`, "gi");
     this._searchResults = resultsLocal.map((result) => {
-
       result.titleFormatted =
         this._searchTerm.length && result.title
           ? result.title.replace(regex, MATCHER_REGEX)
@@ -180,13 +182,22 @@ export default class Lookup extends LightningElement {
         result.hasSubtitles = true;
         result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
           subtitle.index = index;
-          const isTextType = !subtitle.type || TEXT_TYPES.includes(subtitle.type);
-          if (isTextType && subtitle.highlightSearchTerm && this._searchTerm.length) {
+
+          if (subtitle.type === "lightning-icon") {
+            subtitle.isLightningIcon = true;
+          }
+
+          const isTextType =
+            !subtitle.type || TEXT_TYPES.includes(subtitle.type);
+          if (
+            isTextType &&
+            subtitle.highlightSearchTerm &&
+            this._searchTerm.length
+          ) {
             const sub = "" + subtitle.value;
-            subtitle.value =
-              subtitle.value
-                ? sub.replace(regex, MATCHER_REGEX)
-                : sub;
+            subtitle.value = subtitle.value
+              ? sub.replace(regex, MATCHER_REGEX)
+              : sub;
           }
 
           return subtitle;
@@ -298,14 +309,9 @@ export default class Lookup extends LightningElement {
     }
     // If selection was changed by user, notify parent components
     if (isUserInteraction) {
+      let value = this._curSelection.map(({ id }) => id);
 
-      let selection = this._curSelection.map(({ id }) => id);
-
-      this.dispatchEvent(
-        new CustomEvent("change", {
-          detail: selection
-        })
-      );
+      this.dispatchEvent(new CustomEvent("change", { detail: { value } }));
     }
   }
 

@@ -2,9 +2,9 @@ import { LightningElement, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import LightningAlert from "lightning/alert";
-import getInitialSelection from "@salesforce/apex/SobjectLookupSampleController.getInitialSelection";
+import getInitialSelection from "@salesforce/apex/GetInitialSelection.getInitialSelection";
 
-export default class SobjectLookupSample extends NavigationMixin(
+export default class LookupSample extends NavigationMixin(
   LightningElement
 ) {
   isMultiEntry = true;

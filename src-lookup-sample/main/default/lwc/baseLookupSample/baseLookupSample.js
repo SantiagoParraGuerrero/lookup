@@ -4,7 +4,7 @@ import { NavigationMixin } from "lightning/navigation";
 const ACCOUNT_ICON = { iconName: "standard:account" };
 const OPPORTUNITY_ICON = { iconName: "standard:opportunity" };
 
-export default class SampleLookupContainer extends NavigationMixin(
+export default class BaseLookupSample extends NavigationMixin(
   LightningElement
 ) {
   isMultiEntry = false;
@@ -13,18 +13,22 @@ export default class SampleLookupContainer extends NavigationMixin(
 
   searchResults = [];
 
-  defaultSearchResults = [...Array(4).keys()].map((e) => ({
+  defaultSearchResults = [...Array(1).keys()].map((e) => ({
     id: "" + e,
     icon: e < 2 ? ACCOUNT_ICON : OPPORTUNITY_ICON,
     title: "Account " + e,
     subtitles: [
       {
+        type: "lightning-formatted-rich-text",
         label: "Sub 1",
-        value: "Sub 1"
+        value: "account number" + e,
+        props: {}
       },
       {
+        type: "lightning-formatted-rich-text",
         label: "Account Number",
-        value: "" + e,
+        value: "account number" + e,
+        props: {},
         highlightSearchTerm: true // hightlight the searchTerm for the subtitle (so that your users know that this field is being used in the search)
       }
     ]
@@ -50,7 +54,7 @@ export default class SampleLookupContainer extends NavigationMixin(
             type: "lightning-formatted-number",
             label: "Subtitle 1",
             value: 12.34,
-            typeAttributes: {
+            props: {
               formatStyle: "currency"
             }
           },
@@ -58,7 +62,7 @@ export default class SampleLookupContainer extends NavigationMixin(
             label: "Sub 2",
             type: "lightning-icon",
             value: true,
-            typeAttributes: {
+            props: {
               iconName: "utility:activity"
             }
           },
@@ -73,7 +77,7 @@ export default class SampleLookupContainer extends NavigationMixin(
             type: "lightning-formatted-date-time",
             label: "Subtitle 2",
             value: 1547250828000,
-            typeAttributes: {
+            props: {
               year: "2-digit",
               month: "short",
               day: "2-digit",

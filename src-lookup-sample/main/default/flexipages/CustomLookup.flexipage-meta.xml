@@ -3,8 +3,8 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>sampleLookupContainer</componentName>
-                <identifier>c_sampleLookupContainer</identifier>
+                <componentName>baseLookupSample</componentName>
+                <identifier>c_baseLookupSample</identifier>
             </componentInstance>
         </itemInstances>
         <name>column1</name>
@@ -13,8 +13,8 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>sobjectLookupSample</componentName>
-                <identifier>c_sobjectLookupSample</identifier>
+                <componentName>lookupSample</componentName>
+                <identifier>c_lookupSample</identifier>
             </componentInstance>
         </itemInstances>
         <name>column2</name>

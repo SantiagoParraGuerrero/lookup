@@ -28,6 +28,7 @@
 
           <!-- Text input -->
           <input
+            lwc:ref="input"
             type="text"
             class={getInputClass}
             aria-autocomplete="list"
@@ -49,6 +50,7 @@
 
           <!-- Search icon -->
           <lightning-icon
+            data-id="searchIcon"
             icon-name="utility:search"
             size="x-small"
             alternative-text="Search icon"
@@ -101,6 +103,7 @@
               lwc:if={hasResults}
             >
               <li
+                data-id="listItem"
                 key={item.result.id}
                 role="presentation"
                 class="slds-listbox__item"
@@ -139,15 +142,23 @@
                         class="slds-listbox__option-meta slds-listbox__option-meta_entity"
                       >
                         <lightning-formatted-rich-text
+                          data-id="subtitle"
                           value={subtitle.label}
                           disable-linkify
                         ></lightning-formatted-rich-text>
                         <span>: </span>
-                        <c-lookup-value-formatter
-                          type-attributes={subtitle.typeAttributes}
+                        <lightning-icon
+                          lwc:if={subtitle.isLightningIcon}
+                          icon-name="utility:check"
+                          size="xx-small"
+                          lwc:spread={props}
+                        ></lightning-icon>
+                        <c-lightning-formatted-dynamic-output
+                          lwc:else
                           type={subtitle.type}
                           value={subtitle.value}
-                        ></c-lookup-value-formatter>
+                          props={subtitle.props}
+                        ></c-lightning-formatted-dynamic-output>
                       </p>
                     </template>
                   </span>
@@ -188,7 +199,7 @@
                   <span class="slds-media__figure slds-listbox__option-icon">
                     <lightning-icon
                       size="small"
-                      icon-name= "utility:add"
+                      icon-name="utility:add"
                       lwc:spread={action.icon}
                     ></lightning-icon>
                   </span>

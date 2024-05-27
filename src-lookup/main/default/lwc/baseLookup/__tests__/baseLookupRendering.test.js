@@ -26,7 +26,7 @@ describe("c-base-lookup rendering", () => {
 
   it("shows default search results by default", async () => {
     const lookupEl = createLookupElement();
-    lookupEl.setDefaultResults(SAMPLE_SEARCH_ITEMS);
+    lookupEl.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     await flushPromises();
 
     // Query for rendered list items
@@ -94,8 +94,10 @@ describe("c-base-lookup rendering", () => {
     const lookupEl = createLookupElement({ isMultiEntry: false });
 
     // Verify selected icon
-    const selIcon = lookupEl.shadowRoot.querySelector("lightning-icon");
-    expect(selIcon.alternativeText).toBe("Selected item icon");
+    const selIcon = lookupEl.shadowRoot.querySelector(
+      "lightning-icon[data-id='searchIcon']"
+    );
+    expect(selIcon.alternativeText).toBe("Search icon");
     // Verify clear selection button
     const clearSelButton = lookupEl.shadowRoot.querySelector("button");
     expect(clearSelButton.title).toBe("Remove selected option");
@@ -161,7 +163,7 @@ describe("c-base-lookup rendering", () => {
       isMultiEntry: true,
       value: SAMPLE_SEARCH_ITEMS
     });
-    lookupEl.setDefaultResults(SAMPLE_SEARCH_ITEMS);
+    lookupEl.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     await flushPromises();
 
     // Query for rendered list items

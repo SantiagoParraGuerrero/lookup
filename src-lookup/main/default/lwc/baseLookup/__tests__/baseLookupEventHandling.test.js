@@ -65,7 +65,7 @@ describe("c-base-lookup event handling", () => {
     // Create lookup with search handler
     const lookupEl = createLookupElement();
     const searchFn = (event) => {
-      event.target.setSearchResults(SAMPLE_SEARCH_ITEMS);
+      event.target.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     };
     lookupEl.addEventListener("search", searchFn);
 
@@ -88,7 +88,7 @@ describe("c-base-lookup event handling", () => {
     // Create lookup with search handler
     const lookupEl = createLookupElement();
     const searchFn = (event) => {
-      event.target.setSearchResults(SAMPLE_SEARCH_ITEMS);
+      event.target.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     };
     lookupEl.addEventListener("search", searchFn);
 
@@ -113,7 +113,9 @@ describe("c-base-lookup event handling", () => {
     // Create lookup with search handler and new record options
     const actions = [{ name: "NewAccount", label: "New Account" }];
     const lookupEl = createLookupElement({ actions });
-    const searchFn = (event) => event.target.setSearchResults([]);
+    const searchFn = (event) => {
+      event.target.defaultSearchResults = [];
+    };
     const actionFn = jest.fn();
     lookupEl.addEventListener("search", searchFn);
     lookupEl.addEventListener("action", actionFn);

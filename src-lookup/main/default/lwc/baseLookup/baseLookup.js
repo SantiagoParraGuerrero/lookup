@@ -16,15 +16,13 @@ const REGEX_SOSL_RESERVED =
   /(\?|&|\||!|\{|\}|\[|\]|\(|\)|\^|~|\*|:|"|\+|-|\\)/g;
 const REGEX_EXTRA_TRAP = /(\$|\\)/g;
 
-const TEXT_TYPES = ['lightning-formatted-rich-text', 'lightning-formatted-text'];
-
-export default class Lookup extends LightningElement {
+export default class BaseLookup extends LightningElement {
   // Public properties
   @api disabled = false;
   @api fieldLevelText = "";
   @api isMultiEntry = false;
   @api label = "";
-  
+
   @api placeholder = "";
   @api required = false;
   @api scrollAfterNItems = "*";
@@ -168,7 +166,6 @@ export default class Lookup extends LightningElement {
       .replace(REGEX_EXTRA_TRAP, "\\$1");
     const regex = new RegExp(`(${cleanSearchTerm})`, "gi");
     this._searchResults = resultsLocal.map((result) => {
-
       result.titleFormatted =
         this._searchTerm.length && result.title
           ? result.title.replace(regex, MATCHER_REGEX)
@@ -180,13 +177,22 @@ export default class Lookup extends LightningElement {
         result.hasSubtitles = true;
         result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
           subtitle.index = index;
-          const isTextType = !subtitle.type || TEXT_TYPES.includes(subtitle.type);
-          if (isTextType && subtitle.highlightSearchTerm && this._searchTerm.length) {
+
+          if (!subtitle.type) {
+            subtitle.type = "lightning-formatted-rich-text";
+          } else if (subtitle.type === "lightning-icon") {
+            subtitle.isLightningIcon = true;
+          }
+
+          if (
+            subtitle.type === "lightning-formatted-rich-text" &&
+            subtitle.highlightSearchTerm &&
+            this._searchTerm.length
+          ) {
             const sub = "" + subtitle.value;
-            subtitle.value =
-              subtitle.value
-                ? sub.replace(regex, MATCHER_REGEX)
-                : sub;
+            subtitle.value = subtitle.value
+              ? sub.replace(regex, MATCHER_REGEX)
+              : sub;
           }
 
           return subtitle;
@@ -219,12 +225,12 @@ export default class Lookup extends LightningElement {
 
   @api
   focus() {
-    this.template.querySelector("input")?.focus();
+    this.refs.input?.focus();
   }
 
   @api
   blur() {
-    this.template.querySelector("input")?.blur();
+    this.refs.input?.blur();
   }
 
   // INTERNAL FUNCTIONS
@@ -298,14 +304,9 @@ export default class Lookup extends LightningElement {
     }
     // If selection was changed by user, notify parent components
     if (isUserInteraction) {
+      let value = this._curSelection.map(({ id }) => id);
 
-      let selection = this._curSelection.map(({ id }) => id);
-
-      this.dispatchEvent(
-        new CustomEvent("change", {
-          detail: selection
-        })
-      );
+      this.dispatchEvent(new CustomEvent("change", { detail: { value } }));
     }
   }
 
@@ -375,7 +376,7 @@ export default class Lookup extends LightningElement {
   handleComboboxMouseUp() {
     this._cancelBlur = false;
     // Re-focus to text input for the next blur event
-    this.template.querySelector("input").focus();
+    this.refs.input.focus();
   }
 
   handleFocus() {
@@ -412,7 +413,7 @@ export default class Lookup extends LightningElement {
     if (!this.hasSelection()) {
       // eslint-disable-next-line @lwc/lwc/no-async-operation
       setTimeout(() => {
-        this.template.querySelector("input").focus();
+        this.refs.input.focus();
       }, 0);
     }
   }
@@ -424,7 +425,7 @@ export default class Lookup extends LightningElement {
     this.processSelectionUpdate(true);
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     setTimeout(() => {
-      this.template.querySelector("input").focus();
+      this.refs.input.focus();
     }, 0);
   }
 

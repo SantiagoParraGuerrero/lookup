@@ -38,16 +38,18 @@ describe("c-base-lookup exposed functions", () => {
   it("setSearchResults renders correct results", async () => {
     // Create lookup
     const lookupEl = createLookupElement();
-    lookupEl.setSearchResults(SAMPLE_SEARCH_ITEMS);
+    lookupEl.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     await flushPromises();
 
     // Query for rendered list items
-    const listItemEls = lookupEl.shadowRoot.querySelectorAll("li");
+    const listItemEls = lookupEl.shadowRoot.querySelectorAll(
+      "li[data-id='listItem']"
+    );
     expect(listItemEls.length).toBe(SAMPLE_SEARCH_ITEMS.length);
     const resultItemEls = listItemEls[0].querySelectorAll(
-      "lightning-formatted-rich-text"
+      "lightning-formatted-rich-text[data-id='subtitle']"
     );
-    expect(resultItemEls.length).toBe(5);
+    expect(resultItemEls.length).toBe(SAMPLE_SEARCH_ITEMS[0].subtitles.length);
   });
 
   it("setSearchResults supports special regex characters in search term", async () => {
@@ -56,7 +58,7 @@ describe("c-base-lookup exposed functions", () => {
     // Create lookup with search handler
     const lookupEl = createLookupElement();
     const searchFn = (event) => {
-      event.target.setSearchResults(SAMPLE_SEARCH_ITEMS);
+      event.target.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     };
     lookupEl.addEventListener("search", searchFn);
 
@@ -64,7 +66,9 @@ describe("c-base-lookup exposed functions", () => {
     await inputSearchTerm(lookupEl, "[ab");
 
     // Query for rendered list items
-    const listItemEls = lookupEl.shadowRoot.querySelectorAll("li");
+    const listItemEls = lookupEl.shadowRoot.querySelectorAll(
+      "li[data-id='listItem']"
+    );
     expect(listItemEls.length).toBe(SAMPLE_SEARCH_ITEMS.length);
   });
 
@@ -83,7 +87,7 @@ describe("c-base-lookup exposed functions", () => {
     // Create lookup with search handler
     const lookupEl = createLookupElement();
     const searchFn = (event) => {
-      event.target.setSearchResults(SAMPLE_SEARCH_ITEMS);
+      event.target.defaultSearchResults = SAMPLE_SEARCH_ITEMS;
     };
     lookupEl.addEventListener("search", searchFn);
 

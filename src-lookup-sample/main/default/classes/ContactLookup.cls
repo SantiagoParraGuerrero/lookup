@@ -1,4 +1,4 @@
-public class LookupController implements LookupResult.ILookupResult {
+public class ContactLookup implements LookupResult.ILookupResult {
 
   public final static Map<String, Object> ACCOUNT_ICON = new Map<String, Object>{
     'iconName' => 'standard:contact'
@@ -105,14 +105,14 @@ public class LookupController implements LookupResult.ILookupResult {
         email.type = 'lightning-formatted-email';
         email.label = 'Email';
         email.value = contact.Email;
-        email.typeAttributes = new Map<String, Object>{ 'hideIcon' => true };
+        email.props = new Map<String, Object>{ 'hideIcon' => true };
         subtitles.add(email);
     }
 
     LookupResult.Subtitle optedOut = new LookupResult.Subtitle();
     optedOut.type = 'lightning-icon';
     optedOut.label = 'Opted out of email';
-    optedOut.typeAttributes = new Map<String, Object>{
+    optedOut.props = new Map<String, Object>{
       'iconName' => contact.HasOptedOutOfEmail ? 'utility:email' : 'utility:end_chat'
     };
     subtitles.add(optedOut);

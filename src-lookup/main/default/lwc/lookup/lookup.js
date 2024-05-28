@@ -17,6 +17,7 @@ export default class SobjectLookup extends LightningElement {
   @api scrollAfterNItems;
   @api variant;
   @api uniqueId;
+  @api useRawInput;
   @api payload = {};
 
   // an array of ids or a single id
@@ -99,7 +100,7 @@ export default class SobjectLookup extends LightningElement {
     try {
       this._searchResults = await getSearchResults({
         uniqueId: this.uniqueId,
-        searchTerm: this.typeAttributes?.useRawInput
+        searchTerm: this.useRawInput
           ? rawSearchTerm
           : searchTerm,
         selectedIds,
@@ -129,19 +130,17 @@ export default class SobjectLookup extends LightningElement {
     return unique;
   }
 
-  handleChange({ detail: selected }) {
+  handleChange(event) {
+    const value = event.detail.value;
     this._value = [...this.uniqueAccessibleData.values()].filter(({ id }) =>
-      selected.includes(id)
+      value.includes(id)
     );
 
     this.dispatchEvent(
       new CustomEvent("change", {
         detail: {
-          value: selected,
-          payload: this._value.map(({ id, payload }) => ({
-            id,
-            payload
-          }))
+          value,
+          payload: this._value.map(({ id, payload }) => ({ id, payload }))
         }
       })
     );

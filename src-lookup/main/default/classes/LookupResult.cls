@@ -18,7 +18,7 @@ public class LookupResult {
     @AuraEnabled
     public Object value { get; set; }
     @AuraEnabled
-    public Map<String, Object> typeAttributes { get; set; }
+    public Map<String, Object> props { get; set; }
   }
 
   public interface ILookupResult {

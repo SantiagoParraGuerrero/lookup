@@ -1,5 +1,5 @@
 import { createElement } from "lwc";
-import Lookup from "c/baseLookup";
+import Lookup from "c/lookup";
 
 /**
  * Helper function to wait until the microtask queue is empty

@@ -28,7 +28,6 @@
 
           <!-- Text input -->
           <input
-            lwc:ref="input"
             type="text"
             class={getInputClass}
             aria-autocomplete="list"
@@ -50,7 +49,6 @@
 
           <!-- Search icon -->
           <lightning-icon
-            data-id="searchIcon"
             icon-name="utility:search"
             size="x-small"
             alternative-text="Search icon"
@@ -103,7 +101,6 @@
               lwc:if={hasResults}
             >
               <li
-                data-id="listItem"
                 key={item.result.id}
                 role="presentation"
                 class="slds-listbox__item"
@@ -142,7 +139,6 @@
                         class="slds-listbox__option-meta slds-listbox__option-meta_entity"
                       >
                         <lightning-formatted-rich-text
-                          data-id="subtitle"
                           value={subtitle.label}
                           disable-linkify
                         ></lightning-formatted-rich-text>

@@ -16,11 +16,6 @@ const REGEX_SOSL_RESERVED =
   /(\?|&|\||!|\{|\}|\[|\]|\(|\)|\^|~|\*|:|"|\+|-|\\)/g;
 const REGEX_EXTRA_TRAP = /(\$|\\)/g;
 
-const TEXT_TYPES = [
-  "lightning-formatted-rich-text",
-  "lightning-formatted-text"
-];
-
 export default class BaseLookup extends LightningElement {
   // Public properties
   @api disabled = false;
@@ -183,14 +178,14 @@ export default class BaseLookup extends LightningElement {
         result.subtitlesFormatted = result.subtitles.map((subtitle, index) => {
           subtitle.index = index;
 
-          if (subtitle.type === "lightning-icon") {
+          if (!subtitle.type) {
+            subtitle.type = "lightning-formatted-rich-text";
+          } else if (subtitle.type === "lightning-icon") {
             subtitle.isLightningIcon = true;
           }
 
-          const isTextType =
-            !subtitle.type || TEXT_TYPES.includes(subtitle.type);
           if (
-            isTextType &&
+            subtitle.type === "lightning-formatted-rich-text" &&
             subtitle.highlightSearchTerm &&
             this._searchTerm.length
           ) {
@@ -230,12 +225,12 @@ export default class BaseLookup extends LightningElement {
 
   @api
   focus() {
-    this.template.querySelector("input")?.focus();
+    this.refs.input?.focus();
   }
 
   @api
   blur() {
-    this.template.querySelector("input")?.blur();
+    this.refs.input?.blur();
   }
 
   // INTERNAL FUNCTIONS
@@ -381,7 +376,7 @@ export default class BaseLookup extends LightningElement {
   handleComboboxMouseUp() {
     this._cancelBlur = false;
     // Re-focus to text input for the next blur event
-    this.template.querySelector("input").focus();
+    this.refs.input.focus();
   }
 
   handleFocus() {
@@ -418,7 +413,7 @@ export default class BaseLookup extends LightningElement {
     if (!this.hasSelection()) {
       // eslint-disable-next-line @lwc/lwc/no-async-operation
       setTimeout(() => {
-        this.template.querySelector("input").focus();
+        this.refs.input.focus();
       }, 0);
     }
   }
@@ -430,7 +425,7 @@ export default class BaseLookup extends LightningElement {
     this.processSelectionUpdate(true);
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     setTimeout(() => {
-      this.template.querySelector("input").focus();
+      this.refs.input.focus();
     }, 0);
   }
 

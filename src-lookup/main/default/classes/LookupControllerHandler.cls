@@ -1,4 +1,8 @@
 public inherited sharing class LookupControllerHandler {
+
+  @TestVisible 
+  public static String apexClass;
+
   @AuraEnabled(cacheable=true)
   public static List<LookupResult> getSelection(
     String uniqueId,
@@ -11,7 +15,9 @@ public inherited sharing class LookupControllerHandler {
         return new List<LookupResult>();
       }
 
-      String apexClass = Lookup__mdt.getInstance(uniqueId)?.Interface__c;
+      if (apexClass == null) {
+        apexClass = Lookup__mdt.getInstance(uniqueId)?.Interface__c;
+      }
 
       if (String.isBlank(apexClass)) {
         throw new AuraHandledException(
@@ -38,7 +44,10 @@ public inherited sharing class LookupControllerHandler {
     Map<String, Object> payload
   ) {
     try {
-      String apexClass = Lookup__mdt.getInstance(uniqueId)?.Interface__c;
+
+      if (apexClass == null) {
+        apexClass = Lookup__mdt.getInstance(uniqueId)?.Interface__c;
+      }
 
       if (String.isBlank(apexClass)) {
         throw new AuraHandledException(
@@ -67,7 +76,10 @@ public inherited sharing class LookupControllerHandler {
     Map<String, Object> payload
   ) {
     try {
-      String apexClass = Lookup__mdt.getInstance(uniqueId).Interface__c;
+
+      if (apexClass == null) {
+        apexClass = Lookup__mdt.getInstance(uniqueId)?.Interface__c;
+      }
 
       if (String.isBlank(apexClass)) {
         throw new AuraHandledException(

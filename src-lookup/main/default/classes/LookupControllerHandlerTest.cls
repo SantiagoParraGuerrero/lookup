@@ -1,19 +1,19 @@
 @IsTest
 private class LookupControllerHandlerTest {
 
-    @IsTest
-    static void lookupControllerTest() {
+        @IsTest
+        static void lookupControllerTest() {
 
-    // DATA
-    LookupControllerHandler.apexClass = 'LookupControllerHandlerTest.MockLookupController';
+        // DATA
+        LookupControllerHandler.apexClass = 'LookupControllerHandlerTest.MockLookupController';
 
-    // TEST
-    Test.startTest();
-        List<LookupResult> LookupResult = LookupControllerHandler.getSelection('', new List<String>{''}, new Map<String, Object>()); 
-	Test.stopTest();
+        // TEST
+        Test.startTest();
+            List<LookupResult> LookupResult = LookupControllerHandler.getSelection('', new List<String>{''}, new Map<String, Object>()); 
+        Test.stopTest();
 
-    // ASSERT
-    Assert.areEqual(LookupResult.size(), 1);
+        // ASSERT
+        Assert.areEqual(LookupResult.size(), 1);
     } 
 
     @TestVisible

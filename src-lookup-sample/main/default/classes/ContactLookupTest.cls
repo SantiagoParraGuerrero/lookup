@@ -2,13 +2,11 @@
 private class ContactLookupTest {
 
     @IsTest
-    static void ContactLookupTest() {
+    static void contactLookupTest() {
 
         // DATA
-        Map<String, Object> payload = new Map<String, Object>();
-        payload.put('accountName', 'accountName');
         Account account = new Account(
-            Name = 'accountName'
+            Name = 'account name test'
         );
         insert account;
 
@@ -21,6 +19,9 @@ private class ContactLookupTest {
             AccountId = account.Id
         );
         insert contact;
+
+        Map<String, Object> payload = new Map<String, Object>();
+        payload.put('accountName', account.Name);
 
         // TEST
         Test.startTest();

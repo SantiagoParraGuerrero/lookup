@@ -1,5 +1,4 @@
 public class ContactLookup implements LookupResult.ILookupResult {
-
   public final static Map<String, Object> ACCOUNT_ICON = new Map<String, Object>{
     'iconName' => 'standard:contact'
   };
@@ -8,7 +7,6 @@ public class ContactLookup implements LookupResult.ILookupResult {
     List<String> values,
     Map<String, Object> payload
   ) {
-
     List<LookupResult> result = new List<LookupResult>();
     String parentAccountName = (String) payload.get('accountName');
 
@@ -44,7 +42,7 @@ public class ContactLookup implements LookupResult.ILookupResult {
       WHERE LastViewedDate != NULL AND Type = 'Contact'
       ORDER BY LastViewedDate DESC
     ]) {
-        recentlyViewedRecords.add(record.Id);
+      recentlyViewedRecords.add(record.Id);
     }
 
     if (recentlyViewedRecords.isEmpty()) {
@@ -70,7 +68,6 @@ public class ContactLookup implements LookupResult.ILookupResult {
     List<String> selectedIds,
     Map<String, Object> payload
   ) {
-
     String parentAccountName = (String) payload.get('accountName');
     List<LookupResult> result = new List<LookupResult>();
 
@@ -80,8 +77,10 @@ public class ContactLookup implements LookupResult.ILookupResult {
       SELECT Name, Email, HasOptedOutOfEmail
       FROM Contact
       WHERE
-        Id NOT IN : selectedIds
-        AND (Name LIKE :searchTerm OR Phone LIKE :searchTerm OR Email LIKE :searchTerm)
+        Id NOT IN :selectedIds
+        AND (Name LIKE :searchTerm
+        OR Phone LIKE :searchTerm
+        OR Email LIKE :searchTerm)
         AND Account.Name = :parentAccountName
     ];
 
@@ -101,19 +100,21 @@ public class ContactLookup implements LookupResult.ILookupResult {
     List<LookupResult.Subtitle> subtitles = new List<LookupResult.Subtitle>();
 
     if (String.isNotBlank(contact.Email)) {
-        LookupResult.Subtitle email = new LookupResult.Subtitle();
-        email.type = 'lightning-formatted-email';
-        email.label = 'Email';
-        email.value = contact.Email;
-        email.props = new Map<String, Object>{ 'hideIcon' => true };
-        subtitles.add(email);
+      LookupResult.Subtitle email = new LookupResult.Subtitle();
+      email.type = 'lightning-formatted-email';
+      email.label = 'Email';
+      email.value = contact.Email;
+      email.props = new Map<String, Object>{ 'hideIcon' => true };
+      subtitles.add(email);
     }
 
     LookupResult.Subtitle optedOut = new LookupResult.Subtitle();
     optedOut.type = 'lightning-icon';
     optedOut.label = 'Opted out of email';
     optedOut.props = new Map<String, Object>{
-      'iconName' => contact.HasOptedOutOfEmail ? 'utility:email' : 'utility:end_chat'
+      'iconName' => contact.HasOptedOutOfEmail
+        ? 'utility:email'
+        : 'utility:end_chat'
     };
     subtitles.add(optedOut);
 

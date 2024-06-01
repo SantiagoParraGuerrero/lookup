@@ -22,7 +22,10 @@ public class LookupResult {
   }
 
   public interface ILookupResult {
-    List<LookupResult> getSelection(List<String> values, Map<String, Object> payload);
+    List<LookupResult> getSelection(
+      List<String> values,
+      Map<String, Object> payload
+    );
     List<LookupResult> getDefaultSearchResults(Map<String, Object> payload);
     List<LookupResult> getSearchResults(
       String searchTerm,

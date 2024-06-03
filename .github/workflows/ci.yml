@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install Salesforce CLI
+      run: |
+        curl https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz --output sfdx-linux.tar.xz
+        tar xJf sfdx-linux.tar.xz
+        ./sfdx/install
+
+    - name: Authenticate to Salesforce
+      run: sfdx force:auth:sfdxurl:store -f ./auth/sfdx-auth-url.txt -a MyOrg
+      env:
+        SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+
+    - name: Convert source to MDAPI format
+      run: sfdx force:source:convert -d mdapi_output -r force-app
+
+    - name: Run Apex tests
+      run: sfdx force:apex:test:run -u MyOrg --resultformat human --codecoverage --outputdir test-results --loglevel error
+
+    - name: Upload test results to GitHub
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: test-results
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: test-results/coverage/cov.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: true
+
+    - name: Deploy to Salesforce
+      if: github.ref == 'refs/heads/main'
+      run: sfdx force:mdapi:deploy -d mdapi_output -u MyOrg -w -1

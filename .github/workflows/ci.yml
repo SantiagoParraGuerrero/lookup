@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repository
@@ -23,20 +23,29 @@ jobs:
 
     - name: Install Salesforce CLI
       run: |
-        curl https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz --output sfdx-linux.tar.xz
-        tar xJf sfdx-linux.tar.xz
-        ./sfdx/install
+        Invoke-WebRequest -Uri https://developer.salesforce.com/media/salesforce-cli/sfdx-cli/channels/stable/sfdx-cli-7.117.0-afc4313-windows-x64.tar.xz -OutFile sfdx-cli.tar.xz
+        tar -xvf sfdx-cli.tar.xz
+        ./sfdx-cli/install.cmd
+        echo "C:\Program Files\Salesforce CLI\bin" | Out-File -FilePath $Env:GITHUB_ENV -Append
+      shell: pwsh
+
+    - name: Verify Salesforce CLI installation
+      run: sfdx --version
+      shell: pwsh
 
     - name: Authenticate to Salesforce
       run: sfdx force:auth:sfdxurl:store -f ./auth/sfdx-auth-url.txt -a MyOrg
       env:
         SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL }}
+      shell: pwsh
 
     - name: Convert source to MDAPI format
       run: sfdx force:source:convert -d mdapi_output -r force-app
+      shell: pwsh
 
     - name: Run Apex tests
       run: sfdx force:apex:test:run -u MyOrg --resultformat human --codecoverage --outputdir test-results --loglevel error
+      shell: pwsh
 
     - name: Upload test results to GitHub
       uses: actions/upload-artifact@v2
@@ -56,3 +65,4 @@ jobs:
     - name: Deploy to Salesforce
       if: github.ref == 'refs/heads/main'
       run: sfdx force:mdapi:deploy -d mdapi_output -u MyOrg -w -1
+      shell: pwsh

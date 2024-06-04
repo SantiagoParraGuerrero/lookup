@@ -5,14 +5,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Install Dependencies
-      run: npm install sfdx-cli
+    - name: Install Salesforce CLI
+      run: |
+        Invoke-WebRequest -Uri https://developer.salesforce.com/media/salesforce-cli/sfdx/versions/latest/sfdx-windows-x64.exe -OutFile sfdx-cli.exe
+        Start-Process -FilePath sfdx-cli.exe -ArgumentList "/quiet" -Wait
+        $env:PATH += ";C:\Program Files\Salesforce CLI\bin"
+      shell: pwsh
+
+    - name: Verify Salesforce CLI installation
+      shell: pwsh
+      run: |
+        & "C:\Program Files\Salesforce CLI\bin\sfdx" --version
+        & "C:\Program Files\Salesforce CLI\bin\sfdx" plugins --core
     - name: Populate auth file
       run: 'echo "${{ secrets.SALESFORCE_AUTH_URL }}" > ./SALESFORCE_AUTH_URL.txt'
     - name: Authenticate Dev Hub
       run: 'node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a devhub -d'
     - name: 'Create Scratch Org'
-      run: force:org:create -f config/project-scratch-def.json -a ciorg -s -d 1 -v MyOrg
+      run: sfdx force:org:create -f config/project-scratch-def.json -a ciorg -s -d 1 -v MyOrg
       shell: pwsh
     - name: Deploy source
       run: node_modules/sfdx-cli/bin/run force:source:push

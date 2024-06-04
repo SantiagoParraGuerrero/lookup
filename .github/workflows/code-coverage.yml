@@ -1,67 +1,25 @@
-name: Pull Request CI
-on:
-  workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - feature/*
+name: code-coverage
+on: [push]
 jobs:
-  validate-deploy-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the source code
-      - name: "Checkout Source Code"
-        uses: actions/checkout@v2
-      # Install Salesforce CLI
-      - name: "Install Salesforce CLI"
-        run: |
-          wget https://developer.salesforce.com/media/salesforce-cli/sfdx/channels/stable/sfdx-linux-x64.tar.xz
-          mkdir ~/sfdx
-          tar xJf sfdx-linux-x64.tar.xz -C ~/sfdx --strip-components 1
-          echo "$HOME/sfdx/bin" >> $GITHUB_PATH
-          ~/sfdx/bin/sfdx version
-      
-      # Store Secret for Dev Hub 
-      - name: "Populate Auth File with SALESFORCE_AUTH_URL Secret"
-        shell: bash
-        run: "echo ${{ secrets.SALESFORCE_AUTH_URL}} > ./ENV_SFDX_URL.txt"
-      # Authenticate to Dev Hub
-      - name: "Authenticate Environment"
-        run: sfdx auth:sfdxurl:store -f ./ENV_SFDX_URL.txt -a DevHub -d
-      # Create Scratch Org
-      - name: 'Create Scratch Org'
-        run: sfdx force:org:create -f config/project-scratch-def.json -a scratch-org -s -d 1
-      # Deploy Source to Scratch Org
-      - name: 'Push Source to Scratch Org'
-        run: sfdx force:source:push
-      # Run Apex Tests in Scratch Org
-      - name: "Run Apex Tests"
-        run: sfdx force:apex:test:run -c -r json -d ./tests/apex -w 20
-      # Save Code Coverage for Next Job
-      - name: "Make Report Available"
-        uses: actions/upload-artifact@v2
-        with:
-          name: apex-code-coverage
-          path: tests/apex/test-result-codecoverage.json
-       # Delete Scratch Org
-      - name: 'Delete Scratch Org'
-        run: sfdx force:org:delete -p -u scratch-org
-  sonar-scan:
-    needs: validate-deploy-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-      # Download the code coverage report
-      - name: "Download coverage result from previous job"
-        uses: actions/download-artifact@v2
-        with:
-          name: apex-code-coverage
-          path: tests/apex
-      # Use Sonar Cloud action with sonar-project.properties to scan project
-      - name: "Sonar Cloud scan"
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - uses: actions/checkout@v1
+    - name: Install Dependencies
+      run: npm install sfdx-cli
+    - name: Populate auth file
+      run: 'echo "${{ secrets.SALESFORCE_AUTH_URL }}" > ./SALESFORCE_AUTH_URL.txt'
+    - name: Authenticate Dev Hub
+      run: 'node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a devhub -d'
+    - name: Create Scratch Org
+      run: node_modules/sfdx-cli/bin/run force:org:create --targetdevhubusername devhub --setdefaultusername --definitionfile config/project-scratch-def.json --setalias ciorg --durationdays 1
+    - name: Deploy source
+      run: node_modules/sfdx-cli/bin/run force:source:push
+    - name: Run Apex tests
+      run: node_modules/sfdx-cli/bin/run force:apex:test:run --codecoverage --resultformat human -d ./
+    - name: Upload code coverage for Apex to Codecov.io
+      uses: codecov/codecov-action@v2
+      with:
+        flags: Apex
+    - name: Delete Scratch Org
+      run: node_modules/sfdx-cli/bin/run force:org:delete --noprompt

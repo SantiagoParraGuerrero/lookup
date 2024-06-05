@@ -1,0 +1,31 @@
+name: code-coverage
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: |
+        sudo npm install -g sfdx-cli
+
+    - name: Populate auth file
+      run: 'echo "${{ secrets.SALESFORCE_AUTH_URL }}" > ./SALESFORCE_AUTH_URL.txt'
+
+    - name: Authenticate Dev Hub
+      run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a devhub -d'
+
+    - name: Authenticate Target Org
+      run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a targetOrg'
+
+    - name: Deploy source
+      run:  sfdx project deploy start -o targetOrg
+
+    - name: Run Apex tests
+      run:  sfdx apex run test -o targetOrg --codecoverage --resultformat human -d ./
+
+    - name: Upload code coverage for Apex to Codecov.io
+      uses: codecov/codecov-action@v2
+      with:
+        flags: Apex

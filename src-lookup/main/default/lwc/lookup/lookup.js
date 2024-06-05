@@ -150,6 +150,10 @@ export default class SobjectLookup extends LightningElement {
     this.dispatchEvent(new CustomEvent("action", { detail }));
   }
 
+  handleInvalid({ detail }) {
+    this.dispatchEvent(new CustomEvent("invalid", { detail }));
+  }
+
   handleFocus() {
     this.dispatchEvent(new CustomEvent("focus"));
   }

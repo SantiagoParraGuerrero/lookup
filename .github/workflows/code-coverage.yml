@@ -17,15 +17,24 @@ jobs:
       run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a devhub -d'
 
     - name: Authenticate Target Org
-      run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a targetOrg'
+
+      run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a ciorg'
+
+    - name: Create Scratch Org
+      run: sfdx org create scratch -f config/project-scratch-def.json -a ciorg --set-default
 
     - name: Deploy source
-      run:  sfdx project deploy start -o targetOrg
+      run:  sfdx project deploy start
 
     - name: Run Apex tests
-      run:  sfdx apex run test -o targetOrg --codecoverage --resultformat human -d ./
+      run:  sfdx apex run test -o ciorg --codecoverage --resultformat human -d ./
 
     - name: Upload code coverage for Apex to Codecov.io
       uses: codecov/codecov-action@v2
       with:
         flags: Apex
+
+    - name: Delete Scratch Org
+      if: always()
+      run: |
+        sfdx org delete scratch -o ciorg -p

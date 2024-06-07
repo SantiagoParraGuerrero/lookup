@@ -96,7 +96,7 @@ public class ContactLookup implements LookupResult.ILookupResult {
     result.id = contact.Id;
     result.icon = ACCOUNT_ICON;
     result.title = contact.Name;
-    result.payload = contact.getPopulatedFieldsAsMap();
+    result.recordPayload = contact.getPopulatedFieldsAsMap();
     List<LookupResult.Subtitle> subtitles = new List<LookupResult.Subtitle>();
 
     if (String.isNotBlank(contact.Email)) {

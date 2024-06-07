@@ -8,318 +8,331 @@
 
 <img src="screenshots/dropdown-open.png" alt="Lookup with dropdown open" width="350" align="right"/>
 
-1. [About](#about)
-1. [Installation](#installation)
-1. [Documentation](#documentation)
-    1. [Getting started](#getting-started)
-    1. [Handling selection changes (optional)](#handling-selection-changes-optional)
-    1. [Providing default search results (optional)](#providing-default-search-results-optional)
-    1. [Saving form state when creating new records (optional)](#saving-form-state-when-creating-new-records-optional)
-    1. [Passing custom data to JavaScript and Apex (optional)](#passing-custom-data-to-javascript-and-apex-optional)
-1. [Reference](#reference)
-1. [Special use cases](#special-use-cases)
-    1. [Working with picklists values](#working-with-picklists-values)
+- [Salesforce Lookup Component](#salesforce-lookup-component)
+  - [About](#about)
+  - [Getting Started](#getting-started)
+  - [Write the `getSelection()` method](#write-the-getselection-method)
+  - [Write the `getSearchResults()` method](#write-the-getsearchresults-method)
+  - [Write the `getDefaultSearchResults()` method](#write-the-getdefaultsearchresults-method)
+  - [Work with contexts using `payload`](#work-with-contexts-using-payload)
+    - [Get Context (Apex to LightningWebComponent)](#get-context-apex-to-lightningwebcomponent)
+    - [Get Context (LightningWebComponent to Apex)](#get-context-lightningwebcomponent-to-apex)
+  - [Personalize your lookup results](#personalize-your-lookup-results)
+  - [Add Actions (optional)](#add-actions-optional)
+  - [Attributes](#attributes)
+  - [Functions](#functions)
+  - [Events](#events)
+  - [LookupResult](#lookupresult)
+  - [LookupResult.Subtitle](#lookupresultsubtitle)
 
 ## About
 
-This is a generic &amp; customizable lookup component built using Salesforce [Lightning Web Components](https://developer.salesforce.com/docs/component-library/documentation/lwc) and [SLDS](https://www.lightningdesignsystem.com/) style.<br/>
+This is a generic lookup component
 It does not rely on third party libraries and you have full control over its datasource.
 
 <b>Features</b>
 
 The lookup component provides the following features:
 
--   customizable data source that can return mixed sObject types
--   single or multiple selection mode
--   client-side caching & request throttling
--   great test coverage
--   full accessibility (a11y) compliance
--   keyboard navigation
--   search term highlighting
--   ability to create new records
+- customizable data source
+- single or multiple selection mode
+- client-side caching & request throttling
+- great test coverage
+- full accessibility (a11y) compliance
+- keyboard navigation
+- search term highlighting
+- ability to setup actions
 
 <p align="center">
     <img src="screenshots/selection-types.png" alt="Multiple or single entry lookup"/>
 </p>
 
-## Installation
+## Getting Started
 
-The default installation installs the lookup component and a sample application available under this URL (replace the domain):<br/>
-`https://YOUR_DOMAIN.lightning.force.com/c/SampleLookupApp.app`
+1. **Define your apex data source**
 
-If you wish to install the project without the sample application, edit `sfdx-project.json` and remove the `src-sample` path.
-
-Install the sample app by running this script:
-
-**MacOS or Linux**
-
-```
-./install-dev.sh
-```
-
-**Windows**
-
-```
-install-dev.bat
-```
-
-## Documentation
-
-### Getting Started
-
-Follow these steps to use the lookup component:
-
-1. **Write the search endpoint**
-
-    Implement an Apex `@AuraEnabled(cacheable=true scope='global')` method (`SampleLookupController.search` in our samples) that returns the search results as a `List<LookupSearchResult>`.
-    The method name can be different, but it needs to match this signature:
+    Create your apex class that implements the following interface `LookupResult.ILookupResult`
 
     ```apex
-    @AuraEnabled(cacheable=true scope='global')
-    public static List<LookupSearchResult> search(String searchTerm, List<String> selectedIds) {}
-    ```
-
-1. **Import a reference to the search endpoint**
-
-    Import a reference to the `search` Apex method in the lookup parent component's JS:
-
-    ```js
-    import apexSearch from '@salesforce/apex/SampleLookupController.search';
-    ```
-
-1. **Handle the search event and pass search results to the lookup**
-
-    The lookup component exposes a `search` event that is fired when a search needs to be performed on the server-side.
-    The parent component that contains the lookup must handle the `search` event:
-
-    ```xml
-    <c-lookup onsearch={handleSearch} label="Search" placeholder="Search Salesforce">
-    </c-lookup>
-    ```
-
-    The `search` event handler calls the Apex `search` method and passes the results back to the lookup using the `setSearchResults(results)` function:
-
-    ```js
-    handleSearch(event) {
-        const lookupElement = event.target;
-        apexSearch(event.detail)
-            .then(results => {
-                lookupElement.setSearchResults(results);
-            })
-            .catch(error => {
-                // TODO: handle error
-            });
+    public class ContactLookup implements LookupResult.ILookupResult {
+        public List<LookupResult> getSelection()...
+        public List<LookupResult> getDefaultSearchResults...
+        public List<LookupResult> getSearchResults...
     }
     ```
 
-### Handling selection changes (optional)
+2. **Create the `LookupDefinition` record**
+   
+   Go to Setup > Custom Metadata Types > LookupDefinition > add a new record
 
-The lookup component exposes a `selectionchange` event that is fired when the selection of the lookup changes.
-The parent component that contains the lookup can handle the `selectionchange` event:
+   **Label**: `String`<br/>
+   **ApiName**: `String`<br/>
+   **Interface**: `String` (*the name of your apex class*)
 
-```xml
-<c-lookup onsearch={handleSearch} onselectionchange={handleSelectionChange}
-    label="Search" placeholder="Search Salesforce">
+   **IMPORTANT** `ApiName` *should match your* `unique-id`
+
+3. **Use the lookup component**
+    ```html
+    <c-lookup
+        unique-id="Contact_Lookup_123"
+    ></c-lookup>
+    ```
+    **IMPORTANT**: `unique-id` *should match your* `ApiName`
+
+<br/>
+<br/>
+<br/>
+
+## Write the `getSelection()` method
+
+This method is used to get the selected element when the  `@api value` is set
+
+```apex
+public List<LookupResult> getSelection(List<String> selectedIds, Map<String, Object> payload) {
+    List<LookupResult> result = new List<LookupResult>();
+
+    for (Contact contact : [SELECT Id FROM Contact WHERE Id IN: selectedIds]) {
+        result.add(buildResult(contact));
+    }
+
+    return result;
+}
+```
+
+## Write the `getSearchResults()` method
+
+this method is responsible to build the results whenever the user types in the lookup
+
+```apex
+public List<LookupResult> getDefaultSearchResults(
+    String searchTerm,
+    List<String> selectedIds,
+    Map<String, Object> payload) {
+
+    List<LookupResult> result = new List<LookupResult>();
+
+    // selectedIds = list of selected records in the lookup
+
+    searchTerm = '%' + searchTerm + '%';
+
+    for (Contact contact : [
+        SELECT Name, Email
+        FROM Contact
+        WHERE
+            Id NOT IN :selectedIds
+            AND (Name LIKE :searchTerm OR Phone LIKE :searchTerm)]) {
+        result.add(buildResult(contact));
+    }
+
+    return result;
+}
+```
+
+## Write the `getDefaultSearchResults()` method 
+
+These are the results you display when there is no input in the lookup, typically you would use this to display record recomendations such as recently viewed or a plain set of records sorted by some priority. If you dont want to display anything just return an empty List
+
+```apex
+public List<LookupResult> getDefaultSearchResults(Map<String, Object> payload) {
+    List<LookupResult> result = new List<LookupResult>();
+
+    for (Contact contact : [SELECT Id FROM Contact LIMIT 10]) {
+        result.add(buildResult(contact));
+    }
+
+    return result;
+}
+```
+
+## Work with contexts using `payload`
+
+### Get Context (Apex to LightningWebComponent)
+
+When you build the `LookupResults` you can use recordPayload to pass more information for each lookup result
+
+```apex
+LookupResult singleLookupResult = new LookupResult();
+singleLookupResult.id = 'someNurseId';
+singleLookupResult.recordPayload = new Map<String, Object> {
+    'type': 'nurse',
+    'name': 'johana',
+};
+```
+
+```html
+<c-lookup
+    lwc:ref="lookup"
+    unique-id="Nurses_Lookup"
+    onchange={handleChange}>
 </c-lookup>
 ```
 
-The `selectionchange` event handler can then get the current selection from the event detail or by calling the `getSelection()` function:
-
 ```js
-handleSelectionChange(event) {
-    // Get the selected ids from the event (same interface as lightning-input-field)
-    const selectedIds = event.detail;
-    // Or, get the selection objects with ids, labels, icons...
-    const selection = event.target.getSelection();
-    // TODO: do something with the lookup selection
+handleChange(event) {
+    const value = event.detail.value;// ["someId", "someId2", "someId3"]
+    const payload = event.detail.payload;// {"someId": {type: nurse, name : johana}, someId2: {ty...}}
+    // TODO: do something with the selection
 }
 ```
+*You can also access the record payload using the* `getRecordPayload()` *public method*
 
-`getSelection()` always return a list of selected items.
-That list contains a maximum of one element if the lookup is a single-entry lookup.
-
-### Providing default search results (optional)
-
-The lookup can return default search results with the `setDefaultResults(results)` function. This is typically used to return a list of recently viewed records (see sample app).
-
-Here's how you can retrieve recent records and set them as default search results:
-
-1. Implement an Apex endpoint that returns the recent records:
-
-    ```apex
-    @AuraEnabled(cacheable=true scope='global')
-    public static List<LookupSearchResult> getRecentlyViewed()
-    ```
-
-    See the [full code from the sample app](/src-sample/main/default/classes/SampleLookupController.cls#L59)
-
-1. In your parent component, create a property that holds the default results:
-
-    ```js
-    recentlyViewed = [];
-    ```
-
-1. Write a utility function that sets your default search results:
-
-    ```js
-    initLookupDefaultResults() {
-        // Make sure that the lookup is present and if so, set its default results
-        const lookup = this.template.querySelector('c-lookup');
-        if (lookup) {
-            lookup.setDefaultResults(this.recentlyViewed);
-        }
-    }
-    ```
-
-1. Retrieve the recent records by calling your endpoint:
-
-    ```js
-    @wire(getRecentlyViewed)
-    getRecentlyViewed({ data }) {
-        if (data) {
-            this.recentlyViewed = data;
-            this.initLookupDefaultResults();
-        }
-    }
-    ```
-
-1. Initialize the lookup default results when the parent component loads:
-
-    ```js
-    connectedCallback() {
-        this.initLookupDefaultResults();
-    }
-    ```
-
-**Note:** `initLookupDefaultResults()` is called in two places because the wire could load before the lookup is rendered.
-
-### Saving form state when creating new records (optional)
-
-The lookup component allows the user to create new record thanks to the optional `newRecordOptions` attribute. When users create a new record, they navigate away to the record edit form and they lose their current form input (lookup selection and more).
-
-To prevent that from happening, you may provide an optional callback that lets you store the lookup state before navigating away. To do that, initialize the lookup new record options with a `preNavigateCallback` when the parent component loads:
+### Get Context (LightningWebComponent to Apex)
 
 ```js
-connectedCallback() {
-    /**
-     * This callback is called before navigating to the new record form
-     * @param selectedNewRecordOption the new record option that was selected
-     * @return Promise - once resolved, the user is taken to the new record form
-     */
-    const preNavigateCallback = (selectedNewRecordOption) => {
-        return new Promise((resolve) => {
-            // TODO: add some preprocessing (i.e.: save the current form state)
-
-            // Always resolve the promise otherwise the new record form won't show up
-            resolve();
-        });
-    };
-
-    // Assign new record options with the pre-navigate callback to your lookup
-    this.newRecordOptions = [
-        { value: 'Account', label: 'New Account', preNavigateCallback },
-        { value: 'Opportunity', label: 'New Opportunity', preNavigateCallback }
-    ];
-}
+payload = {
+    AccountId: 'SomeAccountId',
+    Type: 'BusinessAccount',
+    Foo: {
+        Bar: 'Foo'
+    }
+};
 ```
 
-**Tip:** consider working with cookies to store information in a temporary state.
-
-### Passing custom data to JavaScript and Apex (optional)
-
-Sometimes, you may want to pass extra data from the lookup component to Apex. To do so, use [dataset](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset) attributes:
-
-1. In the parent component that uses the lookup, add a dataset attribute (`data-custom` in this example):
-
-    ```xml
-    <c-lookup
-        selection={initialSelection}
-        onsearch={handleLookupSearch}
-        label="Search"
-        is-multi-entry={isMultiEntry}
-        data-custom="My custom value"
-    >
-    ```
-
-1. In the parent JS, use the dataset attribute that you just added:
-
-    ```js
-    handleLookupSearch(event) {
-        const lookupElement = event.target;
-
-        alert(lookupElement.dataset.custom); // My custom value
-
-        // Actual search code
-    }
-    ```
-
-## Reference
-
-### Attributes
-
-| Attribute             | Type                                                                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | Default         |
-| --------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
-| `disabled`            | `Boolean`                                                                                     | Whether the lookup selection can be changed.                                                                                                                                                                                                                                                                                                                                                                                                                                        | `false`         |
-| `errors`              | `[{ "id": String, "message": String }]`                                                       | List of errors that are displayed under the lookup. When passing a non-empty list, the component is blurred.                                                                                                                                                                                                                                                                                                                                                                        | `[]`            |
-| `isMultiEntry`        | `Boolean`                                                                                     | Whether the lookup is single (default) or multi entry.                                                                                                                                                                                                                                                                                                                                                                                                                              | `false`         |
-| `label`               | `String`                                                                                      | Optional (but recommended) lookup label. Label is hidden if attribute is omitted but this breaks accessibility. If you don't want to display it, we recommend to provide a label but hide it with `variant="label-hidden"`.                                                                                                                                                                                                                                                         | `''`            |
-| `minSearchTermLength` | `Number`                                                                                      | Minimum number of characters required to perform a search.                                                                                                                                                                                                                                                                                                                                                                                                                          | `2`             |
-| `newRecordOptions`    | `[{ "value": String, "label": String, "defaults": String, "preNavigateCallback": Function }]` | List of options that lets the user create new records.<br/>`value` is an sObject API name (i.e.: "Account")<br/>`label` is the label displayed in the lookup (i.e.: "New Account").<br/>`defaults` is an optional comma-separated list of default field values (i.e.: "Name=Foo,Type\_\_c=Bar")<br/>`preNavigateCallback` is an optional callback used for [saving the form state](#saving-form-state-when-creating-new-records-optional) before navigating to the new record form. | `[]`            |
-| `placeholder`         | `String`                                                                                      | Lookup placeholder text.                                                                                                                                                                                                                                                                                                                                                                                                                                                            | `''`            |
-| `required`            | `Boolean`                                                                                     | Whether the lookup is a required field. Note: Property can be set with `<c-lookup required>`.                                                                                                                                                                                                                                                                                                                                                                                       | `false`         |
-| `scrollAfterNItems`   | `Number`                                                                                      | A null or integer value used to force overflow scroll on the result listbox after N number of items.<br/>Valid values are `null`, `5`, `7`, or `10`.<br/>Use `null` to disable overflow scrolling.                                                                                                                                                                                                                                                                                  | `null`          |
-| `selection`           | `[LookupSearchResult]` OR `LookupSearchResult`                                                | Lookup initial selection if any. Array for multi-entry lookup or an Object for single entry lookup.                                                                                                                                                                                                                                                                                                                                                                                 | `[]`            |
-| `validity`            | `{ "valid": Boolean }`                                                                        | Read-only property used for datatable integration. Reports whether there are errors or not (see `errors`).                                                                                                                                                                                                                                                                                                                                                                          | `false`         |
-| `value`               | `[LookupSearchResult]` OR `LookupSearchResult`                                                | Read-only property used for datatable integration. Alias of `selection`.                                                                                                                                                                                                                                                                                                                                                                                                            | `false`         |
-| `variant`             | `String`                                                                                      | Changes the appearance of the lookup. Accepted variants:<br/>`label-stacked` - places the label above the lookup.<br/>`label-hidden` - hides the label but make it available to assistive technology.<br/>`label-inline` - aligns horizontally the label and lookup.                                                                                                                                                                                                                | `label-stacked` |
-
-### Functions
-
-| Function                     | Description                                                                                                                                    |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `focus()`                    | Places focus on the component an opens the search dropdown (unless this is a single selection lookup with a selection).                        |
-| `blur()`                     | Removes focus from the component and closes the search results list.                                                                           |
-| `getSelection()`             | Gets the current lookup selection as an array of `LookupSearchResult`.                                                                         |
-| `setDefaultResults(results)` | Allows to set optional default items returned when search has no result (ex: recent items).<br/>`results` is an array of `LookupSearchResult`. |
-| `setSearchResults(results)`  | Passes a search result array back to the lookup so that they are displayed in the dropdown.<br/>`results` is an array of `LookupSearchResult`. |
-
-### Events
-
-| Event             | Description                                                                                                                                                                                                                                                                           | `event.detail` Type                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `search`          | Event fired when a search needs to be performed on the server-side.<br/>`searchTerm` is the sanitized (lowercase, trimmed...) search term that should be sent to the server.<br/>`rawSearchTerm` is the unsanitized user input.<br/>`selectedIds` is an array of selected record Ids. | `{ searchTerm: String, rawSearchTerm: String, selectedIds: [ String ] }` |
-| `selectionchange` | Event fired when the selection of the lookup changes. The event's `detail` property holds the list of selected ids.<br/>You can also use `target.getSelection()` to retrieve the selected lookup objects.                                                                             | `[ String ]`                                                             |
-
-## Special use cases
-
-### Working with picklists values
-
-The lookup component can also be used to select values from picklist fields.
-
-This Apex sample example demonstrates how you can query for the values of `Account.Industry`:
+```html
+<c-lookup
+    unique-id="Contact_Lookup"
+    field-level-text="This lookup will filter by Account"
+    payload={payload}>
+</c-lookup>
+```
 
 ```apex
-@AuraEnabled(cacheable=true scope='global')
-public static List<LookupSearchResult> search(String searchTerm, List<String> selectedIds) {
-    // Prepare query parameters
-    searchTerm = '%' + searchTerm + '%';
-    // Execute search query
-    List<PicklistValueInfo> entries = [
-        SELECT Label, Value
-        FROM PicklistValueInfo
-        WHERE
-            EntityParticle.EntityDefinition.QualifiedApiName = 'Account'
-            AND EntityParticle.QualifiedApiName = 'Industry'
-            AND isActive = TRUE
-            AND Label LIKE :searchTerm
-            AND Value NOT IN :selectedIds
-        LIMIT 5
-    ];
-    // Prepare results
-    List<LookupSearchResult> results = new List<LookupSearchResult>();
-    for (PicklistValueInfo entry : entries) {
-        results.add(new LookupSearchResult(entry.Value, null, null, entry.Label, null));
+String accountId = (String) payload.get('AccountId'); // SomeAccountId
+String type = (String) payload.get('Type'); // BusinessAccount
+String foo = (String) payload.get('Foo').get('Bar'); // nestedProperties are allowed
+```
+## Personalize your lookup results
+
+You can customize how your lookup results display <br/>
+the following example show you can build lookup result for a contact
+it displays the name as the title with standard:contact icon and some subtitles with specific format options such as lightning-formatted-email or lightning-icon for more information see 
+
+```apex
+LookupResult result = new LookupResult();
+result.id = contact.Id;
+result.icon = new Map<String, Object> {
+    'iconName' => 'standard:contact'
+};
+result.title = contact.Name;
+result.recordPayload = contact.getPopulatedFieldsAsMap();
+List<LookupResult.Subtitle> subtitles = new List<LookupResult.Subtitle>();
+
+if (String.isNotBlank(contact.Email)) {
+    LookupResult.Subtitle email = new LookupResult.Subtitle();
+    email.type = 'lightning-formatted-email';
+    email.label = 'Email';
+    email.value = contact.Email;
+    email.props = new Map<String, Object>{ 'hideIcon' => true };
+    subtitles.add(email);
+}
+
+LookupResult.Subtitle optedOut = new LookupResult.Subtitle();
+optedOut.type = 'lightning-icon';
+optedOut.label = 'Opted out of email';
+optedOut.props = new Map<String, Object>{
+    'iconName' => contact.HasOptedOutOfEmail
+    ? 'utility:email'
+    : 'utility:end_chat'
+};
+subtitles.add(optedOut);
+
+result.subtitles = subtitles;
+```
+
+## Add Actions (optional)
+
+use `actions` to define custom actions on the component <br/>
+you can handle the `action` event to perform operations whenever an action is triggered
+
+```html
+<c-lookup
+    unique-id="AccountAndOpportunitiesLookup"
+    actions={actions}
+    onaction={handleAction}
+></c-lookup>
+```
+
+```js
+actions = [
+    { name: "newAccount", label: "New Account" },
+    { name: "newOpportunity", label: "New Opportunity" }
+];
+
+handleAction(event) {
+    if (event.detail === "newAccount") {
+        // do something such as navigate to the new record page
+        this[NavigationMixin.Navigate]({
+            type: "standard__objectPage",
+            attributes: {
+                objectApiName: "Account",
+                actionName: "new"
+            }
+        });
+    } else if (event.detail === "newOpportunity") {
+        // do something
     }
-    return results;
 }
 ```
+
+
+## Attributes
+
+| Attribute | Type      | Description | Default |
+| --------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| `uniqueId` | `String` | (**required**) your metadata Lookup QualifiedApiName see **Create the Lookup metadata** | `null` |
+| `disabled`| `Boolean` | Whether the lookup selection can be changed.    | `false` |
+| `isMultiEntry` | `Boolean` | Whether the lookup is single (default) or multi entry.      | `false` |
+| `label`   | `String`  | Optional (but recommended) lookup label. Label is hidden if attribute is omitted but this breaks accessibility. If you don't want to display it, we recommend to provide a label but hide it with `variant="label-hidden"`. | `''`|
+| `minSearchTermLength` | `Number`  | Minimum number of characters required to perform a search.  | `2` |
+| `actions`    | `[{ "name": String, "label": String }]` | List of actions that can be capture using the `action` event | `[]`|
+| `placeholder` | `String`  | Lookup placeholder text.| `''`|
+| `fieldLevelText` | `String`  | Text that gets displayed besides the label using a lightning-helptext.<br/> (there has to be a `label`)| `''`|
+| `required`| `Boolean` | Whether the lookup is a required field. Note: Property can be set with `<c-lookup required>`.   | `false` |
+| `scrollAfterNItems`   | `Number`  | A null or integer value used to force overflow scroll on the result listbox after N number of items.<br/>Valid values are `null`, `5`, `7`, or `10`.<br/>Use `null` to disable overflow scrolling.  | `null`  |
+| `value`   | `[String]` OR `String`| and Array of ids or a single id | `[]`|
+| `validity`| `{ "valid": Boolean }`| Read-only property used for datatable integration. Reports whether there are errors or not (see `errors`).  | `false` |
+| `variant` | `String`  | Changes the appearance of the lookup. Accepted variants:<br/>`label-stacked` - places the label above the lookup.<br/>`label-hidden` - hides the label but make it available to assistive technology.<br/>`label-inline` - aligns horizontally the label and lookup.    | `label-stacked` |
+| `messageWhenValueMissing` | `String` | text to display when the input is required as is missing value | `''` |
+| `useRawInput` | `boolean` | By default the user input get sanitized set to true if you want to get the raw user input | `false` |
+| `payload` | `Object` | Use it to pass data from your component to your apex class configuration | `{}` |
+
+
+## Functions
+
+| Function | Description|
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `checkValidity()` | Places focus on the component an opens the search dropdown (unless this is a single selection lookup with a selection).|
+| `reportValidity()` | Displays the error messages and returns false if the input is invalid If the input is valid, reportValidity() clears displayed error messages and returns true. |
+| `setCustomValidity(message)` | Sets a custom error message to be displayed when the lookup value is submitted. |
+| `showHelpMessageIfInvalid()`  | Shows the help message if the lookup is in an invalid state. |
+| `focus()`  | Sets focus on the lookup |
+| `blur()`  | Removes focus from the lookup |
+| `getRecordPayload()`  | Returns the selectedRecords and their payloads |
+
+## Events
+
+| Event | Description   | `event.detail` Type      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `action`  | event fired when user clicks on the actions (see **actions**) | `{ name: String }`  |
+| `change` | Event fired when the selection of the lookup changes value holds an array with the selected ids and payload holds any aditional information passed from the apex class to the component using the payload attribute | `{ value: [String], payload: {} }` |
+| `invalid` | whenever the state of the lookup is invalid (see **checkValidity** or **reportValidity**) | `{}` |
+
+## LookupResult
+
+| Property | Description   | Type |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `id`  | unique identifier of the lookup result | `String`  |
+| `icon` | displays an icon using lightning-icon | `Map<String, object>` |
+| `title` | main displayable title for the lookup | `String` |
+| `recordPayload` | payload to pass record information to the component | `Map<String, object>` |
+| `subtitles` | and array of subtitles see (#LookupResult.Subtitle) | `List<LookupResult.Subtitle>` |
+
+## LookupResult.Subtitle
+
+| Property | Description   | Type |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `type`  | the component used to format the data valid values are `lightning-icon`, `lightning-formatted-number`, `lightning-formatted-text`, `lightning-formatted-time`, `lightning-formatted-date-time`, `lightning-formatted-email`, `lightning-formatted-url`, `lightning-formatted-rich-text` | `String`  |
+| `label` | a label for the subtitle | `String` |
+| `value` | value to display | `String` |
+| `props` | these props are applied to the component via lwc:spread | `Map<String, object>` |
+| `highlightSearchTerm` | set to true if you want to hightlight your search input into the subtitle as well(only works with type `lightning-formatted-rich-text`) | `Boolean` |

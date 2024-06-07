@@ -17,6 +17,7 @@ jobs:
       run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a devhub -d'
 
     - name: Authenticate Target Org
+
       run: 'sfdx force:auth:sfdxurl:store -f ./SALESFORCE_AUTH_URL.txt -a ciorg'
 
     - name: Create Scratch Org

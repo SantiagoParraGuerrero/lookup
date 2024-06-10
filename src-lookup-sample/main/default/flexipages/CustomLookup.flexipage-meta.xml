@@ -3,16 +3,6 @@
     <flexiPageRegions>
         <itemInstances>
             <componentInstance>
-                <componentName>baseLookupSample</componentName>
-                <identifier>c_baseLookupSample</identifier>
-            </componentInstance>
-        </itemInstances>
-        <name>column1</name>
-        <type>Region</type>
-    </flexiPageRegions>
-    <flexiPageRegions>
-        <itemInstances>
-            <componentInstance>
                 <componentName>lookupSample</componentName>
                 <identifier>c_lookupSample</identifier>
             </componentInstance>
